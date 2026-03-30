@@ -38,7 +38,7 @@ model Project {
   id              Int       @id @default(autoincrement())
   title           String
   description     String
-  groupLink       String    // Jamoa uchun yaratilgan Telegram guruh havolasi
+  groupLink       String    @default("Kiritilmagan") // Xatoni shu qator hal qildi
   category        String    @default("IT & Dasturlash") 
   status          String    @default("ACTIVE")
   authorId        Int
