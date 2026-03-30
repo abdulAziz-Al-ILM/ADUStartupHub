@@ -1,24 +1,29 @@
-// Taqiqlangan so'zlar bazasi (o'zaklar va ommabop so'kinishlar)
-// Bu yerdagi so'zlar matn ichida qanday kelishidan qat'i nazar filtrlanadi.
 const badWords = [
     "jallab", "jalab", "qanjiq", "xaromi", "haromi", "padar", "qotox", "qotoq", 
     "sik", "dalbayob", "blyad", "suka", "xyu", "pidar", "gandon", "foxisha", 
     "fahiwa", "kot", "naxuy", "nahuy", "chmo", "shlyuxa", "jopa", "tvar"
 ];
 
-/**
- * Matn ichida axloqsiz so'zlar bor-yo'qligini tekshiradi.
- * @param {string} text - Tekshiriluvchi matn
- * @returns {boolean} - Agar axloqsiz so'z bo'lsa true, aks holda false qaytaradi
- */
-function containsProfanity(text) {
-    if (!text) return false;
+// Havolalarni (Link) aniqlovchi Regex
+const urlRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)|([a-zA-Z0-9]+\.[a-zA-Z]{2,})/g;
+
+function containsProfanityOrLink(text) {
+    if (!text) return { isBad: false, reason: null };
     
-    // Barcha so'zlarni kichik harfga o'tkazib, bo'shliqlarni tozalaymiz
+    // 1. Linklarni tekshirish (Taqiqlangan)
+    if (urlRegex.test(text)) {
+        return { isBad: true, reason: "LINK" };
+    }
+
+    // 2. Axloqsizlikni tekshirish
     const normalizedText = text.toLowerCase().replace(/\s+/g, ' ');
+    const hasBadWord = badWords.some(word => normalizedText.includes(word));
     
-    // Baza ichidagi har bir so'z matnda qatnashganini tekshirish
-    return badWords.some(word => normalizedText.includes(word));
+    if (hasBadWord) {
+        return { isBad: true, reason: "PROFANITY" };
+    }
+
+    return { isBad: false, reason: null };
 }
 
-module.exports = { containsProfanity };
+module.exports = { containsProfanityOrLink };
