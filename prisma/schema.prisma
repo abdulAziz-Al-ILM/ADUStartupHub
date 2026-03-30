@@ -14,34 +14,32 @@ model User {
   reportCount     Int       @default(0)
   isBanned        Boolean   @default(false)
   
-  // Murakkab Limitlar Tizimi
-  projectsWeek    Int       @default(0) // Haftasiga max 2 ta
+  projectsWeek    Int       @default(0) 
   lastProjectDate DateTime  @default(now())
 
-  problemsDay     Int       @default(0) // Kuniga max 3 ta
+  problemsDay     Int       @default(0) 
   lastProblemDate DateTime  @default(now())
 
-  resumesDay      Int       @default(0) // Kuniga max 4 ta
+  resumesDay      Int       @default(0) 
   lastResumeDate  DateTime  @default(now())
 
-  requestsDay     Int       @default(0) // Kuniga max 3 ta
+  requestsDay     Int       @default(0) 
   lastRequestDate DateTime  @default(now())
 
   createdAt       DateTime  @default(now())
   
-  // Aloqalar
   projects        Project[]
   requests        Request[]
   problems        Problem[]
   resumes         Resume[]
 }
 
-// 1. Startap Loyihalar (Jamoa qidirayotganlar)
 model Project {
   id              Int       @id @default(autoincrement())
   title           String
   description     String
-  category        String    @default("IT & Dasturlash") // Katalog uchun
+  groupLink       String    // Jamoa uchun yaratilgan Telegram guruh havolasi
+  category        String    @default("IT & Dasturlash") 
   status          String    @default("ACTIVE")
   authorId        Int
   author          User      @relation(fields: [authorId], references: [id])
@@ -49,17 +47,15 @@ model Project {
   requests        Request[]
 }
 
-// 2. Talaba E'lonlari (Jamoaga qo'shilishni istaganlar / Rezyume)
 model Resume {
   id              Int       @id @default(autoincrement())
-  skills          String    // Nimalarni bilishi
-  category        String    @default("Dasturchi") // Katalog uchun
+  skills          String    
+  category        String    @default("Dasturchi") 
   authorId        Int
   author          User      @relation(fields: [authorId], references: [id])
   createdAt       DateTime  @default(now())
 }
 
-// 3. Muammolar (Yechim talab qiladigan dolzarb mavzular)
 model Problem {
   id              Int       @id @default(autoincrement())
   description     String
@@ -68,7 +64,6 @@ model Problem {
   createdAt       DateTime  @default(now())
 }
 
-// 4. Loyihaga qo'shilish so'rovlari
 model Request {
   id              Int       @id @default(autoincrement())
   coverLetter     String
