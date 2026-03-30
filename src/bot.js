@@ -72,7 +72,7 @@ app.get('/', async (req, res) => {
                 </div>
 
                 <div class="text-center">
-                    <a href="https://t.me/BU_YERGA_BOT_USERNAME_YOZING" target="_blank" class="inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white transition-all duration-200 bg-blue-600 border border-transparent rounded-xl hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-500/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600">
+                    <a href="https://t.me/ADUStartupHubBot" target="_blank" class="inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white transition-all duration-200 bg-blue-600 border border-transparent rounded-xl hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-500/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600">
                         <i class="fab fa-telegram-plane mr-2 text-xl"></i> Platformaga kirish
                     </a>
                     <p class="mt-4 text-sm text-slate-500">Barcha jarayonlar Telegram ilovasi orqali xavfsiz amalga oshiriladi.</p>
