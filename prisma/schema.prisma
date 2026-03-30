@@ -38,9 +38,15 @@ model Project {
   id              Int       @id @default(autoincrement())
   title           String
   description     String
-  groupLink       String    @default("Kiritilmagan") // Xatoni shu qator hal qildi
+  groupLink       String    @default("Kiritilmagan")
   category        String    @default("IT & Dasturlash") 
-  status          String    @default("ACTIVE")
+  
+  // Loyiha holatlari: TEAM_BUILDING, MVP, LAUNCHED, CANCELLED
+  status          String    @default("TEAM_BUILDING") 
+  
+  // Agar bekor bo'lsa, sababi shu yerda saqlanadi (AI tekshiruvidan o'tgan holda)
+  cancelReason    String?   
+
   authorId        Int
   author          User      @relation(fields: [authorId], references: [id])
   createdAt       DateTime  @default(now())
