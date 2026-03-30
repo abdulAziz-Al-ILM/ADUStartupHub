@@ -163,7 +163,7 @@ app.get('/', async (req, res) => {
                     const btn = document.getElementById('modalActionBtn');
                     if(type === 'project') {
                         // Deep Linking - Botga yo'naltirish
-                        btn.href = "https://t.me/BU_YERGA_BOT_USERNAME_YOZING?start=req_" + id; 
+                        btn.href = "https://t.me/ADUStartupHubBot?start=req_" + id; 
                         btn.style.display = 'flex';
                     } else {
                         btn.style.display = 'none';
