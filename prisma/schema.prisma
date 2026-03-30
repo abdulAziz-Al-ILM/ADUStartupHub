@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  // Bu url Railway'dagi DATABASE_URL o'zgaruvchisidan avtomatik olinadi
+  url      = env("DATABASE_URL")
+}
+
+// Foydalanuvchi modeli
+model User {
+  id              Int       @id @default(autoincrement())
+  telegramId      BigInt    @unique
+  username        String?   // Maxfiylik uchun faqat bazada turadi, ochiq ko'rinmaydi
+  reportCount     Int       @default(0) // 2 ta bo'lsa ban
+  isBanned        Boolean   @default(false)
+  
+  // Kunlik limit tizimi uchun
+  dailyActions    Int       @default(0)
+  lastActionDate  DateTime  @default(now())
+
+  createdAt       DateTime  @default(now())
+  
+  // Aloqalar
+  projects        Project[]
+  requests        Request[]
+}
+
+// Loyihalar (Startaplar) modeli
+model Project {
+  id              Int       @id @default(autoincrement())
+  title           String
+  description     String
+  status          String    @default("ACTIVE") // ACTIVE, CLOSED
+  
+  authorId        Int
+  author          User      @relation(fields: [authorId], references: [id])
+  
+  createdAt       DateTime  @default(now())
+  requests        Request[]
+}
+
+// Loyihaga qo'shilish uchun yuborilgan arizalar
+model Request {
+  id              Int       @id @default(autoincrement())
+  coverLetter     String    // Nima qila olishi haqida qisqa izoh
+  status          String    @default("PENDING") // PENDING, ACCEPTED, REJECTED
+  
+  projectId       Int
+  project         Project   @relation(fields: [projectId], references: [id])
+  
+  applicantId     Int
+  applicant       User      @relation(fields: [applicantId], references: [id])
+
+  createdAt       DateTime  @default(now())
+}
