@@ -347,7 +347,8 @@ bot.on('text', async (ctx) => {
     
     if (!isClean) {
         userState.delete(telegramId);
-        return ctx.telegram.editMessageText(ctx.chat.id, loadingMsg.message_id, null, "⛔️ Matnda axloqsizlik yoki taqiqlangan link bor!");
+        await ctx.telegram.editMessageText(ctx.chat.id, loadingMsg.message_id, null, "⛔️ Matnda axloqsizlik yoki taqiqlangan link bor!");
+        return ctx.reply("Asosiy menyuga qaytdingiz:", mainMenu);
     }
 
     try {
@@ -364,14 +365,16 @@ bot.on('text', async (ctx) => {
         else if (state.step === 'AWAITING_PROJECT_LINK') {
             await prisma.project.create({ data: { title: state.tempTitle, description: state.tempDesc, groupLink: text, authorId: user.id } });
             userState.delete(telegramId);
-            await ctx.telegram.editMessageText(ctx.chat.id, loadingMsg.message_id, null, "🎉 Loyiha joylandi!", mainMenu);
+            await ctx.telegram.editMessageText(ctx.chat.id, loadingMsg.message_id, null, "🎉 Loyiha joylandi!");
+            await ctx.reply("Asosiy menyu:", mainMenu);
         }
         else if (state.step === 'AWAITING_REQUEST_TEXT' && state.targetProjectId) {
             const project = await prisma.project.findUnique({ where: { id: state.targetProjectId }, include: { author: true } });
             if (project) {
                 await prisma.request.create({ data: { coverLetter: text, projectId: project.id, applicantId: user.id } });
                 bot.telegram.sendMessage(Number(project.author.telegramId), `🔔 *Yangi nomzod!*\nLoyiha: ${project.title}\nNomzod: @${ctx.from.username || 'yashirin'}\nXati: ${text}\nGuruh: ${project.groupLink}`, { parse_mode: 'Markdown' });
-                await ctx.telegram.editMessageText(ctx.chat.id, loadingMsg.message_id, null, "✅ Arizangiz yuborildi!", mainMenu);
+                await ctx.telegram.editMessageText(ctx.chat.id, loadingMsg.message_id, null, "✅ Arizangiz yuborildi!");
+                await ctx.reply("Asosiy menyu:", mainMenu);
             }
             userState.delete(telegramId);
         }
@@ -382,16 +385,20 @@ bot.on('text', async (ctx) => {
                 data: { status: "CANCELLED", cancelReason: text } 
             });
             userState.delete(telegramId);
-            await ctx.telegram.editMessageText(ctx.chat.id, loadingMsg.message_id, null, "✅ Loyiha bekor qilindi va sababi statistikaga yozildi.", mainMenu);
+            await ctx.telegram.editMessageText(ctx.chat.id, loadingMsg.message_id, null, "✅ Loyiha bekor qilindi va sababi statistikaga yozildi.");
+            await ctx.reply("Asosiy menyu:", mainMenu);
         }
         else if (state.step === 'AWAITING_PROBLEM_TEXT' || state.step === 'AWAITING_RESUME_TEXT') {
             if (state.step === 'AWAITING_PROBLEM_TEXT') await prisma.problem.create({ data: { description: text, authorId: user.id } });
             if (state.step === 'AWAITING_RESUME_TEXT') await prisma.resume.create({ data: { skills: text, authorId: user.id } });
             userState.delete(telegramId);
-            await ctx.telegram.editMessageText(ctx.chat.id, loadingMsg.message_id, null, "✅ Qabul qilindi!", mainMenu);
+            await ctx.telegram.editMessageText(ctx.chat.id, loadingMsg.message_id, null, "✅ Qabul qilindi!");
+            await ctx.reply("Asosiy menyu:", mainMenu);
         }
     } catch (error) {
-        await ctx.telegram.editMessageText(ctx.chat.id, loadingMsg.message_id, null, "❌ Xatolik.");
+        console.error(error);
+        await ctx.telegram.editMessageText(ctx.chat.id, loadingMsg.message_id, null, "❌ Tizimda qandaydir xato ketdi.");
+        await ctx.reply("Asosiy menyu:", mainMenu);
     }
 });
 
