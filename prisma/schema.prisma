@@ -4,54 +4,78 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  // Bu url Railway'dagi DATABASE_URL o'zgaruvchisidan avtomatik olinadi
   url      = env("DATABASE_URL")
 }
 
-// Foydalanuvchi modeli
 model User {
   id              Int       @id @default(autoincrement())
   telegramId      BigInt    @unique
-  username        String?   // Maxfiylik uchun faqat bazada turadi, ochiq ko'rinmaydi
-  reportCount     Int       @default(0) // 2 ta bo'lsa ban
+  username        String?
+  reportCount     Int       @default(0)
   isBanned        Boolean   @default(false)
   
-  // Kunlik limit tizimi uchun
-  dailyActions    Int       @default(0)
-  lastActionDate  DateTime  @default(now())
+  // Murakkab Limitlar Tizimi
+  projectsWeek    Int       @default(0) // Haftasiga max 2 ta
+  lastProjectDate DateTime  @default(now())
+
+  problemsDay     Int       @default(0) // Kuniga max 3 ta
+  lastProblemDate DateTime  @default(now())
+
+  resumesDay      Int       @default(0) // Kuniga max 4 ta
+  lastResumeDate  DateTime  @default(now())
+
+  requestsDay     Int       @default(0) // Kuniga max 3 ta
+  lastRequestDate DateTime  @default(now())
 
   createdAt       DateTime  @default(now())
   
   // Aloqalar
   projects        Project[]
   requests        Request[]
+  problems        Problem[]
+  resumes         Resume[]
 }
 
-// Loyihalar (Startaplar) modeli
+// 1. Startap Loyihalar (Jamoa qidirayotganlar)
 model Project {
   id              Int       @id @default(autoincrement())
   title           String
   description     String
-  status          String    @default("ACTIVE") // ACTIVE, CLOSED
-  
+  category        String    @default("IT & Dasturlash") // Katalog uchun
+  status          String    @default("ACTIVE")
   authorId        Int
   author          User      @relation(fields: [authorId], references: [id])
-  
   createdAt       DateTime  @default(now())
   requests        Request[]
 }
 
-// Loyihaga qo'shilish uchun yuborilgan arizalar
+// 2. Talaba E'lonlari (Jamoaga qo'shilishni istaganlar / Rezyume)
+model Resume {
+  id              Int       @id @default(autoincrement())
+  skills          String    // Nimalarni bilishi
+  category        String    @default("Dasturchi") // Katalog uchun
+  authorId        Int
+  author          User      @relation(fields: [authorId], references: [id])
+  createdAt       DateTime  @default(now())
+}
+
+// 3. Muammolar (Yechim talab qiladigan dolzarb mavzular)
+model Problem {
+  id              Int       @id @default(autoincrement())
+  description     String
+  authorId        Int
+  author          User      @relation(fields: [authorId], references: [id])
+  createdAt       DateTime  @default(now())
+}
+
+// 4. Loyihaga qo'shilish so'rovlari
 model Request {
   id              Int       @id @default(autoincrement())
-  coverLetter     String    // Nima qila olishi haqida qisqa izoh
-  status          String    @default("PENDING") // PENDING, ACCEPTED, REJECTED
-  
+  coverLetter     String
+  status          String    @default("PENDING")
   projectId       Int
   project         Project   @relation(fields: [projectId], references: [id])
-  
   applicantId     Int
   applicant       User      @relation(fields: [applicantId], references: [id])
-
   createdAt       DateTime  @default(now())
 }
