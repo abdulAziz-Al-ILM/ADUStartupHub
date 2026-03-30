@@ -13,22 +13,37 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const ADMIN_ID = process.env.ADMIN_TELEGRAM_ID;
 
 // =========================================================
-// 🧠 AI MODERATSIYA (Aqlli Filtr)
+// 🧠 GIBRID MODERATSIYA (Regex + AI)
 // =========================================================
 async function aiModerationCheck(text) {
+    // 1. Dastlab aniq linklarni Regex orqali tekshiramiz (AI adashmasligi uchun)
+    const urlRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)|([a-zA-Z0-9]+\.[a-zA-Z]{2,})/g;
+    const allowedRegex = /(t\.me)|(telegram\.me)/g;
+    
+    const urls = text.match(urlRegex);
+    if (urls) {
+        // Agar matnda link bo'lsa va u t.me bo'lmasa -> bloklaymiz
+        const allAllowed = urls.every(url => allowedRegex.test(url));
+        if (!allAllowed) return false;
+    }
+
+    // 2. AI endi faqat axloqni tekshiradi
     try {
         const response = await openai.chat.completions.create({
             model: "gpt-3.5-turbo",
             messages: [
-                { role: "system", content: "Sen qat'iy va aqlli moderatorsan. Matnda axloqsizlik, so'kinish yoki taqiqlangan reklama/spam linklar borligini tekshir. DIQQAT: Foydalanuvchi jamoa yig'ish uchun yuborgan 't.me/' yoki 'telegram.me/' bilan boshlanuvchi havolalarga RUXSAT BER. Boshqa har qanday veb-sayt havolalarini BLOKLA. Agar matn toza va faqat ruxsat etilgan havolalar bo'lsa 'TOZA', qoida buzulgan bo'lsa 'XATO' deb faqat bitta so'z qaytar." },
+                { role: "system", content: "Sen o'zbek tilidagi matnlarni tekshiruvchi qat'iy moderatorsan. Vazifang: Matn ichida haqorat, so'kinish, kamsitish yoki axloqsizlik bor-yo'qligini aniqlash. DIQQAT: 'online', 'sayt', 'internet', 'do'kon' kabi so'zlar mutlaqo xavfsiz. Faqat haqorat bo'lsagina 'XATO' deb qaytar, aks holda 'TOZA' deb faqat bitta so'z yoz. Hech qanday izoh berma." },
                 { role: "user", content: text }
             ],
-            max_tokens: 10
+            max_tokens: 10,
+            temperature: 0.1 // AI ortiqcha o'ylab topmasligi uchun nolga yaqinlashtirdik
         });
-        return response.choices[0].message.content.trim() === 'TOZA';
+        
+        const result = response.choices[0].message.content.trim().toUpperCase();
+        return result.includes('TOZA');
     } catch (error) {
-        console.error("AI xatosi:", error);
-        return true; 
+        console.error("AI Moderatsiya xatosi:", error);
+        return true; // Tizim qulab tushmasligi uchun o'tkazib yuboramiz
     }
 }
 
