@@ -2,9 +2,9 @@
   "name": "adu-startup-hub",
   "version": "1.0.0",
   "description": "ADU Startup Hub platformasi",
-  "main": "src/bot.js",
+  "main": "index.js",
   "scripts": {
-    "start": "npx prisma db push --accept-data-loss && node src/bot.js",
+    "start": "npx prisma db push --accept-data-loss && node index.js",
     "postinstall": "prisma generate"
   },
   "dependencies": {
@@ -12,7 +12,8 @@
     "dotenv": "^16.4.5",
     "express": "^4.18.3",
     "openai": "^4.28.0",
-    "telegraf": "^4.15.3"
+    "telegraf": "^4.15.3",
+    "nodemailer": "^6.9.12"
   },
   "devDependencies": {
     "prisma": "^5.10.2"
