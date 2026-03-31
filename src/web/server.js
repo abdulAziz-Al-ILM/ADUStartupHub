@@ -93,7 +93,8 @@ app.get('/', async (req, res) => {
 
 function startServer(port) {
     app.listen(port, () => {
-        console.log(\`🌐 Web Server \${port}-portda ishga tushdi.\`);
+        // Mana shu qatordagi xato belgilar tozalandi
+        console.log(`🌐 Web Server ${port}-portda ishga tushdi.`);
     });
 }
 
