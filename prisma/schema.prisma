@@ -16,13 +16,10 @@ model User {
   
   projectsWeek    Int       @default(0) 
   lastProjectDate DateTime  @default(now())
-
   problemsDay     Int       @default(0) 
   lastProblemDate DateTime  @default(now())
-
   resumesDay      Int       @default(0) 
   lastResumeDate  DateTime  @default(now())
-
   requestsDay     Int       @default(0) 
   lastRequestDate DateTime  @default(now())
 
@@ -37,19 +34,23 @@ model User {
 model Project {
   id              Int       @id @default(autoincrement())
   title           String
-  description     String
+  
+  // Yangi aqlli shablon maydonlari
+  problemCause    String    @default("Ko'rsatilmagan") // Muammo sababi
+  goal            String    @default("Ko'rsatilmagan") // Asosiy maqsad
+  benefits        String    @default("Ko'rsatilmagan") // Kim qancha manfaat ko'radi
+  hiddenSolution  String    @default("Ko'rsatilmagan") // Faqat jamoaga ko'rinuvchi yechim
+  
   groupLink       String    @default("Kiritilmagan")
   category        String    @default("IT & Dasturlash") 
-  
-  // Loyiha holatlari: TEAM_BUILDING, MVP, LAUNCHED, CANCELLED
   status          String    @default("TEAM_BUILDING") 
-  
-  // Agar bekor bo'lsa, sababi shu yerda saqlanadi (AI tekshiruvidan o'tgan holda)
   cancelReason    String?   
 
   authorId        Int
   author          User      @relation(fields: [authorId], references: [id])
   createdAt       DateTime  @default(now())
+  
+  // Loyihaga kelgan arizalar
   requests        Request[]
 }
 
@@ -65,6 +66,7 @@ model Resume {
 model Problem {
   id              Int       @id @default(autoincrement())
   description     String
+  // Anonim bo'lishi uchun muallif ochiq ko'rsatilmaydi, lekin bazada kimligini bilib turamiz (xavfsizlik uchun)
   authorId        Int
   author          User      @relation(fields: [authorId], references: [id])
   createdAt       DateTime  @default(now())
@@ -73,10 +75,15 @@ model Problem {
 model Request {
   id              Int       @id @default(autoincrement())
   coverLetter     String
-  status          String    @default("PENDING")
+  status          String    @default("PENDING") // PENDING, ACCEPTED, REJECTED
+  
+  // "Instagram" 1x qoidasi uchun aloqalar
   projectId       Int
   project         Project   @relation(fields: [projectId], references: [id])
   applicantId     Int
   applicant       User      @relation(fields: [applicantId], references: [id])
   createdAt       DateTime  @default(now())
+
+  // Bitta foydalanuvchi bitta loyihaga faqat 1 ta ariza yubora oladi (Takrorlanishni oldini oladi)
+  @@unique([projectId, applicantId])
 }
