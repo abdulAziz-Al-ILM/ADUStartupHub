@@ -12,6 +12,10 @@ const mainMenu = Markup.keyboard([
     ['📊 Kabinet']
 ]).resize();
 
+bot.command('myid', (ctx) => {
+    ctx.reply(`Sizning Telegram ID: \`${ctx.from.id}\``, { parse_mode: 'Markdown' });
+});
+
 bot.start(async (ctx) => {
     const telegramId = ctx.from.id;
     try {
@@ -23,7 +27,17 @@ bot.start(async (ctx) => {
         
         if (user.isBanned) return ctx.reply("⛔️ Akkauntingiz bloklangan.");
 
-        // KORPORATIV POCHTA TEKSHIRUVI
+        // 👑 ADMIN BYPASS: Agar siz kirsangiz, pochtasiz avtomatik tasdiqlanadi
+        const adminId = process.env.ADMIN_TELEGRAM_ID ? process.env.ADMIN_TELEGRAM_ID.trim() : "";
+        if (telegramId.toString() === adminId && !user.isVerified) {
+            user = await prisma.user.update({
+                where: { telegramId: BigInt(telegramId) },
+                data: { isVerified: true, email: "admin@adu.uz" } // Admin uchun virtual korporativ pochta
+            });
+            await ctx.reply("👑 *Admin Rejimi faollashdi:* Siz uchun email tekshiruvi bekor qilindi va to'g'ridan-to'g'ri tizimga kiritildingiz!", { parse_mode: 'Markdown' });
+        }
+
+        // Boshqalar uchun pochta tekshiruvi
         if (!user.isVerified) {
             userState.set(telegramId, { step: 'AWAITING_EMAIL' });
             return ctx.reply("🎓 *ADU Startup Hub yopiq platformasiga xush kelibsiz!*\n\nTizimdan foydalanish uchun universitetingiz tomonidan berilgan korporativ pochtangizni (@adu.uz) kiriting.\n\n_Masalan: talaba@adu.uz_", { parse_mode: 'Markdown', ...Markup.removeKeyboard() });
@@ -46,7 +60,6 @@ bot.on('text', async (ctx) => {
         const user = await prisma.user.findUnique({ where: { telegramId: BigInt(telegramId) } });
 
         if (state && state.step === 'AWAITING_EMAIL') {
-            // Hozircha testing uchun @adu.uz va @gmail.com ochiq turadi
             if (!text.toLowerCase().endsWith('@adu.uz') && !text.toLowerCase().endsWith('@gmail.com')) {
                 return ctx.reply("❌ Kechirasiz, platformaga faqat Andijon Davlat Universitetining rasmiy (@adu.uz) pochtasi orqali kirish mumkin. Qayta urinib ko'ring:");
             }
@@ -66,15 +79,7 @@ bot.on('text', async (ctx) => {
                     data: { email: text.toLowerCase(), otpCode: otp }
                 });
                 userState.set(telegramId, { step: 'AWAITING_OTP' });
-                
-                let msgText = `✅ Tasdiqlash kodi *${text}* manziliga yuborildi.\n\nIltimos, pochtangizni tekshiring va 4 xonali kodni shu yerga yozing:`;
-                
-                // 👑 ADMIN UCHUN TEST BACKDOOR
-                if (telegramId.toString() === process.env.ADMIN_TELEGRAM_ID) {
-                    msgText += `\n\n*(Siz Adminsiz, test uchun kodingiz:* \`${otp}\` *)*`;
-                }
-
-                await ctx.telegram.editMessageText(ctx.chat.id, loadingMsg.message_id, null, msgText, { parse_mode: 'Markdown' });
+                await ctx.telegram.editMessageText(ctx.chat.id, loadingMsg.message_id, null, `✅ Tasdiqlash kodi *${text}* manziliga yuborildi.\n\nIltimos, pochtangizni tekshiring va 4 xonali kodni shu yerga yozing:`, { parse_mode: 'Markdown' });
             } else {
                 await ctx.telegram.editMessageText(ctx.chat.id, loadingMsg.message_id, null, "❌ Pochta serveriga ulanishda xatolik.");
             }
