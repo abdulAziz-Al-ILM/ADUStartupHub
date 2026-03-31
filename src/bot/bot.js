@@ -13,14 +13,13 @@ const mainMenu = Markup.keyboard([
     ['📊 Kabinet']
 ]).resize();
 
-// 🆔 ID bilish buyrug'i
 bot.command('myid', (ctx) => {
     ctx.reply(`Sizning Telegram ID raqamingiz:\n\`${ctx.from.id}\``, { parse_mode: 'Markdown' });
 });
 
 bot.start(async (ctx) => {
     const telegramId = ctx.from.id;
-    const payload = ctx.startPayload; // Deep linking (Saytdan kelsa)
+    const payload = ctx.startPayload; 
 
     try {
         let user = await prisma.user.findUnique({ where: { telegramId: BigInt(telegramId) } });
@@ -31,7 +30,6 @@ bot.start(async (ctx) => {
         
         if (user.isBanned) return ctx.reply("⛔️ Akkauntingiz bloklangan.");
 
-        // 👑 ADMIN BYPASS
         const adminId = process.env.ADMIN_TELEGRAM_ID ? process.env.ADMIN_TELEGRAM_ID.trim() : "";
         if (telegramId.toString() === adminId && !user.isVerified) {
             user = await prisma.user.update({
@@ -46,13 +44,11 @@ bot.start(async (ctx) => {
             return ctx.reply("🎓 *ADU Startup Hub yopiq platformasiga xush kelibsiz!*\n\nTizimdan foydalanish uchun universitetingiz tomonidan berilgan korporativ pochtangizni (@adu.uz) kiriting.\n\n_Masalan: talaba@adu.uz_", { parse_mode: 'Markdown', ...Markup.removeKeyboard() });
         }
 
-        // 🔗 SAYTDAN KELGAN SO'ROVLAR (DEEP LINKING)
         if (payload && payload.startsWith('req_')) {
             const projectId = parseInt(payload.split('_')[1]);
             const project = await prisma.project.findUnique({ where: { id: projectId } });
             if (!project) return ctx.reply("Loyiha topilmadi.", mainMenu);
 
-            // 🚫 INSTAGRAM 1X QOIDASI (Faqat bitta ariza)
             const existingReq = await prisma.request.findFirst({ where: { projectId, applicantId: user.id } });
             if (existingReq) return ctx.reply("⚠️ Siz ushbu jamoaga allaqachon so'rov yuborgansiz. Iltimos, loyiha asoschisi javobini kuting.", mainMenu);
 
@@ -69,11 +65,11 @@ bot.start(async (ctx) => {
 });
 
 // ==========================================
-// TUGMALAR MANTIQI
+// TUGMALAR MANTIQI (Bosqichlar bilan)
 // ==========================================
 bot.hears('🚀 Loyiha yaratish', (ctx) => {
     userState.set(ctx.from.id, { step: 'PROJ_TITLE' });
-    ctx.reply("🚀 Yangi Startap!\nLoyihangizning jozibador va qisqacha nomini yozing:", Markup.removeKeyboard());
+    ctx.reply("🚀 *Yangi Startap [Bosqich 1/5]*\n\nLoyihangizning jozibador va qisqacha nomini yozing:", { parse_mode: 'Markdown', ...Markup.removeKeyboard() });
 });
 
 bot.hears('🤝 Rezyume', (ctx) => {
@@ -83,7 +79,7 @@ bot.hears('🤝 Rezyume', (ctx) => {
 
 bot.hears('❗ Muammo (Anonim)', (ctx) => {
     userState.set(ctx.from.id, { step: 'PROBLEM' });
-    ctx.reply("💡 Qanday muammo bor?\n*(Eslatma: Bu e'lon saytda anonim tarzda chiqadi, ismingiz ko'rsatilmaydi)*", Markup.removeKeyboard());
+    ctx.reply("💡 Qanday muammo bor?\n*(Eslatma: Bu e'lon saytda anonim tarzda chiqadi, ismingiz ko'rsatilmaydi)*", { parse_mode: 'Markdown', ...Markup.removeKeyboard() });
 });
 
 bot.hears('📊 Kabinet', async (ctx) => {
@@ -102,7 +98,6 @@ bot.hears('⚙️ Loyihalarim', async (ctx) => {
     ctx.reply(replyText, { parse_mode: 'Markdown', ...Markup.inlineKeyboard(buttons) });
 });
 
-// Loyiha boshqaruvi harakatlari
 bot.action(/manage_(\d+)/, async (ctx) => {
     const projectId = parseInt(ctx.match[1]);
     ctx.answerCbQuery();
@@ -130,7 +125,7 @@ bot.action(/cancel_(\d+)/, async (ctx) => {
 
 
 // ==========================================
-// MATNLAR ZANJIRI (TEXT PROCESSOR)
+// MATNLAR ZANJIRI VA IQTISODIY AI TAHLIL
 // ==========================================
 bot.on('text', async (ctx) => {
     const telegramId = ctx.from.id;
@@ -157,7 +152,12 @@ bot.on('text', async (ctx) => {
             if (isSent) {
                 await prisma.user.update({ where: { telegramId: BigInt(telegramId) }, data: { email: text.toLowerCase(), otpCode: otp } });
                 userState.set(telegramId, { step: 'AWAITING_OTP' });
-                await ctx.telegram.editMessageText(ctx.chat.id, msg.message_id, null, `✅ Tasdiqlash kodi *${text}* ga yuborildi.\nKodni kiriting:`, { parse_mode: 'Markdown' });
+                
+                let msgText = `✅ Tasdiqlash kodi *${text}* ga yuborildi.\nKodni kiriting:`;
+                const adminId = process.env.ADMIN_TELEGRAM_ID ? process.env.ADMIN_TELEGRAM_ID.trim() : "";
+                if (telegramId.toString() === adminId) msgText += `\n\n*(👑 Admin kodi:* \`${otp}\` *)*`;
+
+                await ctx.telegram.editMessageText(ctx.chat.id, msg.message_id, null, msgText, { parse_mode: 'Markdown' });
             } else {
                 await ctx.telegram.editMessageText(ctx.chat.id, msg.message_id, null, "❌ Pochta xizmatida xatolik.");
             }
@@ -171,62 +171,66 @@ bot.on('text', async (ctx) => {
                 ctx.reply("❌ Kod xato. Qayta urinib ko'ring yoki /start bosing.");
             }
         }
-        return;
-    }
-
-    // 2. SUN'IY INTELLEKT FILTRI (Faqat ruxsat etilganlar uchun ishlaydi)
-    const loadingMsg = await ctx.reply("⏳ AI tahlili...");
-    const isClean = await aiModerationCheck(text);
-    
-    if (!isClean) {
-        userState.delete(telegramId);
-        await ctx.telegram.editMessageText(ctx.chat.id, loadingMsg.message_id, null, "⛔️ Matnda axloqsizlik yoki yot veb-havola aniqlandi. So'rov bekor qilindi.");
-        return ctx.reply("Menyuga qaytdingiz:", mainMenu);
+        return; // Pochta tizimida AI tekshiruvi kerak emas, shuning uchun shu yerdan qaytamiz
     }
 
     try {
         const user = await prisma.user.findUnique({ where: { telegramId: BigInt(telegramId) } });
 
-        // 📝 LOYIHA SHABLONI ZANJIRI
+        // 📝 LOYIHA SHABLONI ZANJIRI (AI'ni bu yerda ishlatmaymiz, pulni tejaymiz)
         if (state.step === 'PROJ_TITLE') {
             userState.set(telegramId, { step: 'PROJ_CAUSE', data: { title: text } });
-            await ctx.telegram.editMessageText(ctx.chat.id, loadingMsg.message_id, null, "✅ Qabul qilindi. \n\nUshbu loyihani yaratishga qanday *Muammo (Sabab)* turtki bo'ldi?", { parse_mode: 'Markdown' });
+            return ctx.reply("✅ *[Bosqich 2/5]*\n\nUshbu loyihani yaratishga qanday *Muammo (Sabab)* turtki bo'ldi?", { parse_mode: 'Markdown' });
         } 
         else if (state.step === 'PROJ_CAUSE') {
             state.data.cause = text;
             userState.set(telegramId, { step: 'PROJ_GOAL', data: state.data });
-            await ctx.telegram.editMessageText(ctx.chat.id, loadingMsg.message_id, null, "✅ Qabul. \n\nLoyihaning *Asosiy maqsadi* nima?", { parse_mode: 'Markdown' });
+            return ctx.reply("✅ *[Bosqich 3/5]*\n\nLoyihaning *Asosiy maqsadi* nima?", { parse_mode: 'Markdown' });
         }
         else if (state.step === 'PROJ_GOAL') {
             state.data.goal = text;
             userState.set(telegramId, { step: 'PROJ_BENEFIT', data: state.data });
-            await ctx.telegram.editMessageText(ctx.chat.id, loadingMsg.message_id, null, "✅ Qabul. \n\nBundan kim va qancha *Manfaat (Foyda)* ko'radi?", { parse_mode: 'Markdown' });
+            return ctx.reply("✅ *[Bosqich 4/5]*\n\nBundan kim va qancha *Manfaat (Foyda)* ko'radi?", { parse_mode: 'Markdown' });
         }
         else if (state.step === 'PROJ_BENEFIT') {
             state.data.benefits = text;
-            userState.set(telegramId, { step: 'PROJ_SOLUTION', data: state.data });
-            await ctx.telegram.editMessageText(ctx.chat.id, loadingMsg.message_id, null, "🔒 Qabul. \n\nBuni qanday amalga oshirasiz? *Yechim siri qanday?* \n_(Xavotir olmang, bu qism ommaga ko'rinmaydi. Faqat jamoangizga qo'shilganlar o'qiy oladi)_", { parse_mode: 'Markdown' });
-        }
-        else if (state.step === 'PROJ_SOLUTION') {
-            state.data.solution = text;
             userState.set(telegramId, { step: 'PROJ_LINK', data: state.data });
-            await ctx.telegram.editMessageText(ctx.chat.id, loadingMsg.message_id, null, "✅ Eng so'nggi qadam: \n\nJamoangiz bilan suhbatlashish uchun ochilgan *Telegram guruh havolasini* yuboring (Masalan: t.me/guruh_nomi):", { parse_mode: 'Markdown' });
+            return ctx.reply("✅ *[Bosqich 5/5]* (Oxirgi qadam)\n\nJamoangiz bilan suhbatlashish uchun ochilgan *Telegram guruh havolasini* yuboring (Masalan: t.me/guruh_nomi):", { parse_mode: 'Markdown' });
         }
         else if (state.step === 'PROJ_LINK') {
+            state.data.link = text;
+
+            // 🤖 AI TEKSHIRUVI (Faqat eng oxirida 1 marta barcha matnni yig'ib jo'natamiz - Xarajatni kamaytirish)
+            const loadingMsg = await ctx.reply("⏳ Barcha kiritilgan ma'lumotlar AI tahlilidan o'tkazilmoqda...");
+            const fullTextToCheck = `${state.data.title} ${state.data.cause} ${state.data.goal} ${state.data.benefits}`;
+            const isClean = await aiModerationCheck(fullTextToCheck);
+
+            if (!isClean) {
+                userState.delete(telegramId);
+                return ctx.telegram.editMessageText(ctx.chat.id, loadingMsg.message_id, null, "⛔️ Matnlaringizda axloqsizlik yoki yot havola aniqlandi. Tizim arizani bekor qildi.");
+            }
+
             await prisma.project.create({ 
                 data: { 
                     title: state.data.title, problemCause: state.data.cause, goal: state.data.goal,
-                    benefits: state.data.benefits, hiddenSolution: state.data.solution,
-                    groupLink: text, authorId: user.id 
+                    benefits: state.data.benefits, groupLink: state.data.link, authorId: user.id 
+                    // hiddenSolution avtomat "Ko'rsatilmagan" bo'lib ketaveradi
                 } 
             });
             userState.delete(telegramId);
             await ctx.telegram.editMessageText(ctx.chat.id, loadingMsg.message_id, null, "🎉 Tabriklaymiz! Loyihangiz platformaga joylandi.");
-            ctx.reply("Asosiy menyu", mainMenu);
+            return ctx.reply("Asosiy menyu", mainMenu);
         }
 
-        // BOSHQA FUNKSIYALAR
-        else if (state.step === 'AWAITING_REQUEST_TEXT' && state.targetProjectId) {
+        // BOSHQA YAKKA QADAMLI FUNKSIYALAR UCHUN AI TEKSHIRUVI
+        const loadingMsg = await ctx.reply("⏳ AI tahlili...");
+        const isClean = await aiModerationCheck(text);
+        if (!isClean) {
+            userState.delete(telegramId);
+            return ctx.telegram.editMessageText(ctx.chat.id, loadingMsg.message_id, null, "⛔️ Matnda axloqsizlik yoki taqiqlangan havola mavjud.");
+        }
+
+        if (state.step === 'AWAITING_REQUEST_TEXT' && state.targetProjectId) {
             try {
                 const project = await prisma.project.findUnique({ where: { id: state.targetProjectId }, include: { author: true } });
                 await prisma.request.create({ data: { coverLetter: text, projectId: state.targetProjectId, applicantId: user.id } });
@@ -253,7 +257,7 @@ bot.on('text', async (ctx) => {
         }
     } catch (error) {
         console.error(error);
-        await ctx.telegram.editMessageText(ctx.chat.id, loadingMsg.message_id, null, "❌ Xatolik yuz berdi.");
+        ctx.reply("❌ Xatolik yuz berdi.");
     }
 });
 
