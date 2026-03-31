@@ -77,7 +77,7 @@ app.get('/', async (req, res) => {
                     <h3 class="text-2xl font-bold mb-2">Tizimga qo'shilish</h3>
                     <p class="text-slate-400 text-sm mb-6">Xavfsizlik va sifatni ta'minlash maqsadida platformaga faqatgina universitet tomonidan berilgan korporativ pochta (@adu.uz) orqali kirish mumkin.</p>
                     
-                    <a href="https://t.me/BU_YERGA_BOT_USERNAME_YOZING" target="_blank" class="w-full flex items-center justify-center gap-3 bg-white text-black hover:bg-slate-200 transition font-bold py-4 rounded-xl">
+                    <a href="https://t.me/ADUStartupHubBot" target="_blank" class="w-full flex items-center justify-center gap-3 bg-white text-black hover:bg-slate-200 transition font-bold py-4 rounded-xl">
                         <i class="fab fa-telegram text-blue-500 text-xl"></i> Telegram orqali pochtani tasdiqlash
                     </a>
                 </div>
