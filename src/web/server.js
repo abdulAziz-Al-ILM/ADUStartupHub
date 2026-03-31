@@ -268,7 +268,10 @@ app.get('/app', async (req, res) => {
                 function openModal(type, id, title, cause, goal, benefits) {
                     document.getElementById('modalTitle').innerText = title; document.getElementById('modalCause').innerText = cause;
                     document.getElementById('modalGoal').innerText = goal; document.getElementById('modalBenefits').innerText = benefits;
-                    document.getElementById('modalActionBtn').href = "https://t.me/BU_YERGA_BOT_USERNAME_YOZING?start=req_" + id; 
+                    
+                    // BOT USERNAME ANIQ KIRITILDI
+                    document.getElementById('modalActionBtn').href = "https://t.me/ADUStartupHubBot?start=req_" + id; 
+                    
                     document.getElementById('detailModal').classList.remove('hidden'); document.getElementById('detailModal').classList.add('flex');
                 }
                 function closeModal() { document.getElementById('detailModal').classList.add('hidden'); document.getElementById('detailModal').classList.remove('flex'); }
