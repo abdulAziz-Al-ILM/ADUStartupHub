@@ -46,12 +46,11 @@ bot.on('text', async (ctx) => {
         const user = await prisma.user.findUnique({ where: { telegramId: BigInt(telegramId) } });
 
         if (state && state.step === 'AWAITING_EMAIL') {
-            // Faqat @adu.uz uchun qat'iy tekshiruv (yoki hozircha testing uchun @gmail ni ham qo'shishingiz mumkin)
+            // Hozircha testing uchun @adu.uz va @gmail.com ochiq turadi
             if (!text.toLowerCase().endsWith('@adu.uz') && !text.toLowerCase().endsWith('@gmail.com')) {
                 return ctx.reply("❌ Kechirasiz, platformaga faqat Andijon Davlat Universitetining rasmiy (@adu.uz) pochtasi orqali kirish mumkin. Qayta urinib ko'ring:");
             }
 
-            // Pochta bandligini tekshirish
             const existingEmail = await prisma.user.findFirst({ where: { email: text.toLowerCase(), isVerified: true } });
             if (existingEmail && existingEmail.telegramId !== BigInt(telegramId)) {
                 return ctx.reply("⚠️ Bu pochta manzili allaqachon boshqa akkauntga ulangan!");
@@ -62,23 +61,29 @@ bot.on('text', async (ctx) => {
             const isSent = await sendOTP(text.toLowerCase(), otp);
 
             if (isSent) {
-                // Kodni bazaga saqlaymiz va pochtani biriktiramiz
                 await prisma.user.update({
                     where: { telegramId: BigInt(telegramId) },
                     data: { email: text.toLowerCase(), otpCode: otp }
                 });
                 userState.set(telegramId, { step: 'AWAITING_OTP' });
-                await ctx.telegram.editMessageText(ctx.chat.id, loadingMsg.message_id, null, `✅ Tasdiqlash kodi *${text}* manziliga yuborildi.\n\nIltimos, pochtangizni tekshiring va 4 xonali kodni shu yerga yozing:`, { parse_mode: 'Markdown' });
+                
+                let msgText = `✅ Tasdiqlash kodi *${text}* manziliga yuborildi.\n\nIltimos, pochtangizni tekshiring va 4 xonali kodni shu yerga yozing:`;
+                
+                // 👑 ADMIN UCHUN TEST BACKDOOR
+                if (telegramId.toString() === process.env.ADMIN_TELEGRAM_ID) {
+                    msgText += `\n\n*(Siz Adminsiz, test uchun kodingiz:* \`${otp}\` *)*`;
+                }
+
+                await ctx.telegram.editMessageText(ctx.chat.id, loadingMsg.message_id, null, msgText, { parse_mode: 'Markdown' });
             } else {
-                await ctx.telegram.editMessageText(ctx.chat.id, loadingMsg.message_id, null, "❌ Pochta serveriga ulanishda xatolik. Keyinroq urinib ko'ring yoki .env sozlamalarini tekshiring.");
+                await ctx.telegram.editMessageText(ctx.chat.id, loadingMsg.message_id, null, "❌ Pochta serveriga ulanishda xatolik.");
             }
         } 
         else if (state && state.step === 'AWAITING_OTP') {
             if (user.otpCode === text) {
-                // Muvaffaqiyatli tasdiqlash
                 await prisma.user.update({
                     where: { telegramId: BigInt(telegramId) },
-                    data: { isVerified: true, otpCode: null } // Kodni tozalab tashlaymiz
+                    data: { isVerified: true, otpCode: null } 
                 });
                 userState.delete(telegramId);
                 ctx.reply("🎉 *Tabriklaymiz!* Siz muvaffaqiyatli tasdiqlandingiz va ADU Startup Hub elita klubiga qabul qilindingiz.", { parse_mode: 'Markdown', ...mainMenu });
