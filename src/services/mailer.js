@@ -1,14 +1,20 @@
 const nodemailer = require('nodemailer');
 
-const transporter = nodemailer.createTransport({
-    service: 'gmail', // Agar ADU pochtasiga o'tsak, buni 'host' va 'port' ga almashtiramiz
-    auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
-    }
-});
-
 async function sendOTP(email, code) {
+    // 🛠 TEST REJIMI: Agar Railway'da pochta sozlanmagan bo'lsa, xato bermaydi
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+        console.log(`[TEST MODE] ${email} ga yuborilgan kod: ${code}`);
+        return true; 
+    }
+
+    const transporter = nodemailer.createTransport({
+        service: 'gmail', 
+        auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS
+        }
+    });
+
     const mailOptions = {
         from: `"ADU Startup Hub" <${process.env.SMTP_USER}>`,
         to: email,
@@ -36,7 +42,7 @@ async function sendOTP(email, code) {
 }
 
 function generateOTP() {
-    return Math.floor(1000 + Math.random() * 9000).toString(); // 4 xonali kod
+    return Math.floor(1000 + Math.random() * 9000).toString(); 
 }
 
 module.exports = { sendOTP, generateOTP };
