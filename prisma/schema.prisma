@@ -11,6 +11,12 @@ model User {
   id              Int       @id @default(autoincrement())
   telegramId      BigInt    @unique
   username        String?
+  
+  // Korporativ pochta xavfsizligi
+  email           String?   @unique
+  isVerified      Boolean   @default(false)
+  otpCode         String?   // Pochtaga boradigan tasdiqlash kodi
+  
   reportCount     Int       @default(0)
   isBanned        Boolean   @default(false)
   
@@ -35,11 +41,10 @@ model Project {
   id              Int       @id @default(autoincrement())
   title           String
   
-  // Yangi aqlli shablon maydonlari
-  problemCause    String    @default("Ko'rsatilmagan") // Muammo sababi
-  goal            String    @default("Ko'rsatilmagan") // Asosiy maqsad
-  benefits        String    @default("Ko'rsatilmagan") // Kim qancha manfaat ko'radi
-  hiddenSolution  String    @default("Ko'rsatilmagan") // Faqat jamoaga ko'rinuvchi yechim
+  problemCause    String    @default("Ko'rsatilmagan") 
+  goal            String    @default("Ko'rsatilmagan") 
+  benefits        String    @default("Ko'rsatilmagan") 
+  hiddenSolution  String    @default("Ko'rsatilmagan") 
   
   groupLink       String    @default("Kiritilmagan")
   category        String    @default("IT & Dasturlash") 
@@ -49,8 +54,6 @@ model Project {
   authorId        Int
   author          User      @relation(fields: [authorId], references: [id])
   createdAt       DateTime  @default(now())
-  
-  // Loyihaga kelgan arizalar
   requests        Request[]
 }
 
@@ -66,7 +69,6 @@ model Resume {
 model Problem {
   id              Int       @id @default(autoincrement())
   description     String
-  // Anonim bo'lishi uchun muallif ochiq ko'rsatilmaydi, lekin bazada kimligini bilib turamiz (xavfsizlik uchun)
   authorId        Int
   author          User      @relation(fields: [authorId], references: [id])
   createdAt       DateTime  @default(now())
@@ -75,15 +77,13 @@ model Problem {
 model Request {
   id              Int       @id @default(autoincrement())
   coverLetter     String
-  status          String    @default("PENDING") // PENDING, ACCEPTED, REJECTED
+  status          String    @default("PENDING") 
   
-  // "Instagram" 1x qoidasi uchun aloqalar
   projectId       Int
   project         Project   @relation(fields: [projectId], references: [id])
   applicantId     Int
   applicant       User      @relation(fields: [applicantId], references: [id])
   createdAt       DateTime  @default(now())
 
-  // Bitta foydalanuvchi bitta loyihaga faqat 1 ta ariza yubora oladi (Takrorlanishni oldini oladi)
   @@unique([projectId, applicantId])
 }
