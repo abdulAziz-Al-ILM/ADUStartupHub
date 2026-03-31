@@ -10,7 +10,7 @@ const userState = new Map();
 const mainMenu = Markup.keyboard([
     ['🚀 Loyiha yaratish', '🤝 Rezyume'],
     ['❗ Muammo (Anonim)', '⚙️ Loyihalarim'],
-    ['📊 Kabinet']
+    ['🌐 Ilovaga kirish', '📊 Kabinet']
 ]).resize();
 
 bot.command('myid', (ctx) => {
@@ -96,6 +96,16 @@ bot.hears('⚙️ Loyihalarim', async (ctx) => {
     let replyText = "⚙️ *Loyihalaringizni boshqaring:*\nQaysi loyihaning holatini o'zgartirmoqchisiz?";
     const buttons = myProjects.map(p => [Markup.button.callback(`${p.title} (${p.status})`, `manage_${p.id}`)]);
     ctx.reply(replyText, { parse_mode: 'Markdown', ...Markup.inlineKeyboard(buttons) });
+});
+
+bot.hears('🌐 Ilovaga kirish', (ctx) => {
+    // Railway URL manzilingizni shu yerga qo'ying
+    const webAppUrl = "https://sizning-saytingiz.railway.app/app"; 
+    
+    ctx.reply("Platformaning Veb-ilovasi hamda Loyihalar katalogiga kirish uchun quyidagi tugmani bosing:",
+    Markup.inlineKeyboard([
+        [Markup.button.url("Katalog va Ilovani ochish", webAppUrl)]
+    ]));
 });
 
 bot.action(/manage_(\d+)/, async (ctx) => {
