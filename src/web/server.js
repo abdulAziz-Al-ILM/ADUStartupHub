@@ -428,7 +428,10 @@ app.get('/app', async (req, res) => {
 });
 
 function startServer(port) {
-    app.listen(port, () => { console.log(`🌐 Web Server ${port}-portda ishga tushdi.`); });
+    // Railway tashqaridan kira olishi uchun '0.0.0.0' qat'iy belgilandi
+    app.listen(port, '0.0.0.0', () => { 
+        console.log(`🌐 Web Server ${port}-portda ishga tushdi.`); 
+    });
 }
 
 module.exports = { startServer };
