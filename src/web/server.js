@@ -1,14 +1,12 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
-const path = require('path');
 const app = express();
 const prisma = new PrismaClient();
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '../../public')));
 
 // ==========================================
-// 🚀 PWA STANDALONE FIX
+// 🚀 PWA STANDALONE FIX (Muammo hal qilindi)
 // ==========================================
 app.get('/manifest.json', (req, res) => {
     res.json({
@@ -16,10 +14,17 @@ app.get('/manifest.json', (req, res) => {
         "short_name": "ADU Hub",
         "start_url": "/app",
         "display": "standalone",
-        "orientation": "portrait",
-        "background_color": "#FAFAFA",
-        "theme_color": "#10B981",
-        "icons": [{"src": "/logo.jpg", "sizes": "512x512", "type": "image/jpeg", "purpose": "any maskable"}]
+        "background_color": "#ffffff",
+        "theme_color": "#2563eb", // Standart Startap Ko'k rangi
+        "icons": [
+            {
+                // Ishonchli va o'chib ketmaydigan 3D Raketa logosi
+                "src": "https://cdn-icons-png.flaticon.com/512/3135/3135715.png", 
+                "sizes": "512x512", 
+                "type": "image/png",
+                "purpose": "any maskable"
+            }
+        ]
     });
 });
 
@@ -28,12 +33,15 @@ app.get('/sw.js', (req, res) => {
     res.send(`
         self.addEventListener('install', (e) => { self.skipWaiting(); });
         self.addEventListener('activate', (e) => { e.waitUntil(clients.claim()); });
-        self.addEventListener('fetch', (e) => { });
+        self.addEventListener('fetch', (e) => { 
+            // Chrome buni ilova deb tan olishi uchun bu qator shart!
+            e.respondWith(fetch(e.request).catch(() => new Response('Internet yo\\'q')));
+        });
     `);
 });
 
 // ==========================================
-// 🌿 ORGANIC ECO-FUTURISTIC DESIGN
+// 💻 STANDARD STARTUP DESIGN (Toza, professional)
 // ==========================================
 const headElements = `
     <link rel="manifest" href="/manifest.json">
@@ -42,7 +50,7 @@ const headElements = `
     <script>
         tailwind.config = { 
             darkMode: 'class', 
-            theme: { extend: { colors: { eco: '#10B981', ecodark: '#059669', ecoglow: '#A7F3D0', darkbg: '#022C22', darkcard: '#064E3B' } } } 
+            theme: { extend: { colors: { brand: '#2563eb', brandhover: '#1d4ed8' } } } 
         }
         if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
@@ -54,40 +62,30 @@ const headElements = `
         }
     </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; transition: background-color 0.4s ease, color 0.4s ease; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s, color 0.3s; -webkit-tap-highlight-color: transparent; }
         
-        /* 🌿 ORGANIC LIGHT MODE */
-        body:not(.dark) { background-color: #FAFAFA; color: #0F172A; }
-        body:not(.dark) .eco-glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.9); box-shadow: 0 20px 40px -10px rgba(16, 185, 129, 0.08); }
+        /* Toza Light Mode */
+        body:not(.dark) { background-color: #f8fafc; color: #0f172a; }
+        .card-light { background: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         
-        /* 🌌 BIOLUMINESCENT DARK MODE */
-        .dark body { background-color: #020617; color: #F8FAFC; }
-        .dark .eco-glass { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid rgba(16, 185, 129, 0.15); box-shadow: 0 20px 40px -10px rgba(16, 185, 129, 0.15); }
+        /* Chuqur Dark Mode */
+        .dark body { background-color: #0f172a; color: #f8fafc; }
+        .dark .card-light { background: #1e293b; border: 1px solid #334155; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
 
-        /* 🦠 LIVING BACKGROUND BLOBS (Tirik fon) */
-        .blob-1 { position: fixed; top: -10%; left: -10%; width: 50vw; height: 50vw; background: radial-gradient(circle, rgba(16,185,129,0.15) 0%, transparent 60%); filter: blur(60px); z-index: -1; animation: float 12s ease-in-out infinite; }
-        .blob-2 { position: fixed; bottom: -20%; right: -10%; width: 60vw; height: 60vw; background: radial-gradient(circle, rgba(52,211,153,0.1) 0%, transparent 60%); filter: blur(80px); z-index: -1; animation: float 15s ease-in-out infinite reverse; }
-        .dark .blob-1 { background: radial-gradient(circle, rgba(16,185,129,0.2) 0%, transparent 60%); }
-        .dark .blob-2 { background: radial-gradient(circle, rgba(5,150,105,0.2) 0%, transparent 60%); }
-        @keyframes float { 0% { transform: translate(0, 0) scale(1); } 50% { transform: translate(30px, 20px) scale(1.05); } 100% { transform: translate(0, 0) scale(1); } }
+        /* Standart Startap Orqa Foni (Faqat tepada kichik nur) */
+        .header-glow { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 100vw; height: 40vh; background: radial-gradient(circle, rgba(37,99,235,0.08) 0%, transparent 70%); z-index: -1; pointer-events: none; }
+        .dark .header-glow { background: radial-gradient(circle, rgba(37,99,235,0.15) 0%, transparent 70%); }
 
-        /* 🟢 ECO BUTTONS & HOVERS */
-        .btn-eco { background: linear-gradient(135deg, #10B981, #059669); color: white; box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4); border-radius: 9999px; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        .btn-eco:hover { transform: translateY(-3px); box-shadow: 0 15px 30px -5px rgba(16, 185, 129, 0.5); }
-        
-        .bento-card { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 2.5rem; }
-        .bento-card:hover { transform: translateY(-6px) scale(1.01); box-shadow: 0 25px 50px -12px rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4); }
-        .dark .bento-card:hover { box-shadow: 0 25px 50px -12px rgba(16, 185, 129, 0.25); border-color: rgba(16, 185, 129, 0.5); }
-
-        /* Qatorlarni yo'qotish, pill shakl */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: rgba(16, 185, 129, 0.3); border-radius: 10px; }
+        /* Smooth hover */
+        .hover-card { transition: all 0.2s ease; }
+        .hover-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); border-color: #3b82f6; }
+        .dark .hover-card:hover { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); border-color: #3b82f6; }
 
         @media (display-mode: standalone) { .install-btn { display: none !important; } }
-        .tab-content { display: none; animation: ecoSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
         .tab-content.active { display: block; }
-        @keyframes ecoSlideUp { from { opacity: 0; transform: translateY(20px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 `;
 
@@ -101,7 +99,7 @@ const installScript = `
                 deferredPrompt.userChoice.then((choiceResult) => { if (choiceResult.outcome === 'accepted') deferredPrompt = null; });
             } else {
                 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-                if(isIOS) alert("Ilovani iPhone'ga o'rnatish uchun:\\n1. Pastdagi 'Ulashish' (Share) belgisini bosing.\\n2. 'Ekranga qo'shish' ni tanlang.");
+                if(isIOS) alert("Ilovani iPhone'ga o'rnatish uchun:\\n1. Brauzer pastidagi 'Ulashish' belgisini bosing.\\n2. 'Ekranga qo'shish' ni tanlang.");
                 else alert("Ilova allaqachon o'rnatilgan yoki brauzer menyusidan 'Ekranga qo'shish' ni bosing.");
             }
         }
@@ -109,8 +107,10 @@ const installScript = `
     </script>
 `;
 
+const LOGO_URL = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+
 // ==========================================
-// 1-XONA: LANDING PAGE (Organik Kutib olish)
+// 1-XONA: LANDING PAGE (SaaS Style)
 // ==========================================
 app.get('/', async (req, res) => {
     try {
@@ -122,50 +122,39 @@ app.get('/', async (req, res) => {
         <html lang="uz">
         <head>
             <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>ADU Startup Hub</title>
             ${headElements}
         </head>
         <body class="min-h-screen flex flex-col relative">
-            <div class="blob-1"></div>
-            <div class="blob-2"></div>
+            <div class="header-glow"></div>
             
-            <nav class="w-[90%] md:w-auto md:min-w-[600px] eco-glass fixed top-6 left-1/2 transform -translate-x-1/2 z-50 px-4 py-3 flex justify-between items-center rounded-full">
-                <div class="flex items-center gap-3 pl-2">
-                    <img src="/logo.jpg" alt="Logo" class="w-9 h-9 rounded-full object-cover shadow-sm">
-                    <span class="text-lg font-extrabold tracking-tight hidden md:block">ADU Hub</span>
-                </div>
+            <nav class="w-full card-light fixed top-0 z-50 px-6 py-4 flex justify-between items-center bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
                 <div class="flex items-center gap-3">
-                    <button onclick="toggleTheme()" class="w-10 h-10 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-500 transition">
-                        <i class="fas fa-moon dark:hidden"></i><i class="fas fa-sun hidden dark:block text-amber-400"></i>
-                    </button>
-                    <button class="install-btn btn-eco px-6 py-2.5 font-bold text-sm flex items-center gap-2">
-                        <i class="fas fa-download"></i> <span class="hidden md:inline">Ilovani olish</span>
-                    </button>
+                    <img src="${LOGO_URL}" alt="Logo" class="w-8 h-8 object-contain">
+                    <span class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">ADU Hub</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleTheme()" class="text-slate-500 hover:text-brand transition"><i class="fas fa-moon dark:hidden text-lg"></i><i class="fas fa-sun hidden dark:block text-lg"></i></button>
+                    <button class="install-btn bg-brand hover:bg-brandhover text-white px-5 py-2 rounded-lg font-semibold text-sm transition shadow-sm">Ilovani olish</button>
                 </div>
             </nav>
             
             <main class="flex-1 flex flex-col items-center justify-center text-center px-4 pt-32 pb-20 z-10">
-                <div class="mb-8 inline-block px-5 py-2 rounded-full eco-glass border border-eco/30 text-eco font-bold text-xs uppercase tracking-widest shadow-sm">
-                    <span class="w-2 h-2 inline-block bg-eco rounded-full animate-pulse mr-2"></span>Yopiq Beta Ekotizim
-                </div>
+                <div class="mb-6 inline-block px-4 py-1.5 rounded-full bg-blue-50 dark:bg-blue-900/30 text-brand font-semibold text-xs tracking-wide">Beta Versiya</div>
                 
-                <h1 class="text-5xl md:text-7xl font-extrabold mb-6 leading-tight max-w-4xl mx-auto tracking-tight">
-                    Tabiiy iqtidorlardan <br> <span class="text-transparent bg-clip-text bg-gradient-to-r from-eco to-blue-500">Global startaplarga.</span>
+                <h1 class="text-5xl md:text-6xl font-extrabold mb-6 leading-tight max-w-3xl mx-auto tracking-tight text-slate-900 dark:text-white">
+                    Universitet g'oyalarini <span class="text-brand">bozorga aylantiramiz.</span>
                 </h1>
-                <p class="text-lg md:text-xl text-slate-500 dark:text-slate-400 max-w-2xl mb-14 leading-relaxed font-medium">Platforma qoidasi oddiy: Faqat Andijon Davlat Universiteti pochtasiga ega bo'lganlar qabul qilinadi.</p>
+                <p class="text-lg text-slate-500 dark:text-slate-400 max-w-2xl mb-12 leading-relaxed">Eng iqtidorli talabalar, dasturchilar va startap asoschilari uchun yagona korporativ ekotizim.</p>
                 
-                <div class="flex flex-wrap justify-center gap-6 mb-16">
-                    <div class="eco-glass px-10 py-6 rounded-[2rem] flex flex-col items-center min-w-[160px]"><span class="text-4xl font-black">${totalUsers}</span><span class="text-[10px] text-slate-500 uppercase font-bold mt-2 tracking-widest">A'zolar</span></div>
-                    <div class="eco-glass px-10 py-6 rounded-[2rem] flex flex-col items-center min-w-[160px] relative overflow-hidden">
-                        <div class="absolute inset-0 bg-eco/5"></div>
-                        <span class="text-4xl font-black text-eco relative z-10">${activeProjects}</span>
-                        <span class="text-[10px] text-slate-500 uppercase font-bold mt-2 tracking-widest relative z-10">Startaplar</span>
-                    </div>
+                <div class="flex flex-wrap justify-center gap-6 mb-12">
+                    <div class="card-light px-8 py-6 rounded-2xl flex flex-col items-center min-w-[160px]"><span class="text-3xl font-black text-slate-900 dark:text-white">${totalUsers}</span><span class="text-xs text-slate-500 font-semibold mt-1">Faol a'zolar</span></div>
+                    <div class="card-light px-8 py-6 rounded-2xl flex flex-col items-center min-w-[160px] border-b-2 border-brand"><span class="text-3xl font-black text-brand">${activeProjects}</span><span class="text-xs text-slate-500 font-semibold mt-1">Startaplar</span></div>
                 </div>
                 
-                <a href="/app" class="btn-eco px-10 py-5 text-lg font-bold flex items-center gap-3 shadow-[0_20px_40px_-10px_rgba(16,185,129,0.5)]">
-                    Katalog va Ilovani ochish <i class="fas fa-arrow-right"></i>
+                <a href="/app" class="bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 px-8 py-4 rounded-xl font-semibold text-lg transition shadow-lg flex items-center gap-2">
+                    Platformaga kirish <i class="fas fa-arrow-right text-sm"></i>
                 </a>
             </main>
             ${installScript}
@@ -177,7 +166,7 @@ app.get('/', async (req, res) => {
 });
 
 // ==========================================
-// 2-XONA: HAQIQIY ILOVA (Eco-Futuristic App)
+// 2-XONA: HAQIQIY ILOVA (Dashboard Style)
 // ==========================================
 app.get('/app', async (req, res) => {
     try {
@@ -196,66 +185,68 @@ app.get('/app', async (req, res) => {
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-            <title>Ilova | ADU Hub</title>
+            <title>ADU Hub | Dashboard</title>
             ${headElements}
         </head>
-        <body class="flex h-screen overflow-hidden relative">
-            <div class="blob-1"></div>
-            <div class="blob-2"></div>
+        <body class="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-900">
+            <div class="header-glow"></div>
 
-            <div id="authGateway" class="fixed inset-0 bg-slate-50/80 dark:bg-[#020617]/80 z-[100] flex flex-col items-center justify-center p-4 backdrop-blur-3xl">
-                <div class="eco-glass p-10 rounded-[3rem] max-w-sm w-full text-center shadow-2xl relative overflow-hidden">
-                    <div class="absolute -top-10 -right-10 w-32 h-32 bg-eco/20 rounded-full blur-2xl"></div>
-                    <img src="/logo.jpg" alt="Logo" class="w-24 h-24 rounded-full mx-auto mb-6 shadow-xl object-cover border-4 border-white/50 dark:border-slate-800/50 relative z-10">
-                    <h2 class="text-3xl font-extrabold mb-2 relative z-10 tracking-tight">Tizimga kirish</h2>
-                    <p class="text-slate-500 mb-8 text-sm relative z-10">Korporativ pochtani tasdiqlang</p>
+            <div id="authGateway" class="fixed inset-0 bg-slate-900/80 z-[100] flex flex-col items-center justify-center p-4 backdrop-blur-sm">
+                <div class="card-light p-8 rounded-2xl max-w-sm w-full text-center shadow-xl">
+                    <div class="w-16 h-16 bg-blue-50 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-6"><i class="fas fa-lock text-brand text-2xl"></i></div>
+                    <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Tizimga kirish</h2>
+                    <p class="text-slate-500 mb-6 text-sm">Korporativ pochta orqali tasdiqlang</p>
                     
-                    <div class="space-y-4 relative z-10">
-                        <input id="loginEmail" type="email" placeholder="Pochta manzili" class="w-full bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-full px-6 py-4 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-eco/50 transition font-medium">
-                        <input id="loginCode" type="password" placeholder="Maxfiy kod (OTP)" class="w-full bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-full px-6 py-4 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-eco/50 transition font-medium">
-                    </div>
+                    <input id="loginEmail" type="email" placeholder="Pochta manzili (@adu.uz)" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-3 mb-3 text-slate-900 dark:text-white focus:outline-none focus:border-brand transition text-sm">
+                    <input id="loginCode" type="password" placeholder="Maxfiy kod (OTP)" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-3 mb-6 text-slate-900 dark:text-white focus:outline-none focus:border-brand transition text-sm">
                     
-                    <button onclick="checkLogin()" class="btn-eco w-full py-4 mt-8 font-bold text-lg relative z-10">Tasdiqlash</button>
-                    <p id="authErrorMsg" class="text-rose-500 text-sm mt-4 hidden font-bold relative z-10 animate-bounce"><i class="fas fa-exclamation-circle"></i> Ma'lumot xato!</p>
+                    <button onclick="checkLogin()" class="w-full bg-brand hover:bg-brandhover text-white font-semibold py-3 rounded-lg transition shadow-sm">Tasdiqlash</button>
+                    <p id="authErrorMsg" class="text-red-500 text-sm mt-3 hidden font-medium">Ma'lumot xato!</p>
                 </div>
             </div>
 
-            <aside class="w-[100px] lg:w-[280px] my-6 ml-6 eco-glass rounded-[2.5rem] flex flex-col hidden md:flex z-20 overflow-hidden shadow-2xl transition-all duration-300">
-                <div class="p-6 flex justify-center lg:justify-start items-center gap-3 border-b border-slate-200/50 dark:border-slate-700/30">
-                    <img src="/logo.jpg" alt="Logo" class="w-12 h-12 rounded-full object-cover shadow-sm">
-                    <h1 class="text-xl font-extrabold hidden lg:block tracking-tight">ADU Hub</h1>
+            <aside class="w-64 card-light h-full flex flex-col hidden md:flex z-20 border-r border-slate-200 dark:border-slate-800 rounded-none bg-white dark:bg-slate-900">
+                <div class="p-6 flex items-center gap-3 border-b border-slate-100 dark:border-slate-800">
+                    <img src="${LOGO_URL}" alt="Logo" class="w-8 h-8 object-contain">
+                    <h1 class="text-lg font-bold text-slate-900 dark:text-white tracking-tight">ADU Hub</h1>
                 </div>
                 
-                <nav class="flex-1 p-4 space-y-3 overflow-y-auto">
-                    <button onclick="switchTab('dashboard', this)" class="nav-btn w-full flex items-center justify-center lg:justify-start gap-4 p-4 rounded-full text-left font-bold active-tab bg-white dark:bg-slate-800/80 shadow-sm text-eco transition-all"><i class="fas fa-leaf text-xl w-6 text-center"></i> <span class="hidden lg:block">Ekotizim</span></button>
-                    <button onclick="switchTab('startups', this)" class="nav-btn w-full flex items-center justify-center lg:justify-start gap-4 p-4 text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-800/40 rounded-full text-left font-bold transition-all"><i class="fas fa-rocket text-xl w-6 text-center"></i> <span class="hidden lg:block">Startaplar</span></button>
-                    <button onclick="switchTab('talents', this)" class="nav-btn w-full flex items-center justify-center lg:justify-start gap-4 p-4 text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-800/40 rounded-full text-left font-bold transition-all"><i class="fas fa-dna text-xl w-6 text-center"></i> <span class="hidden lg:block">Iqtidorlar</span></button>
-                    <button onclick="switchTab('problems', this)" class="nav-btn w-full flex items-center justify-center lg:justify-start gap-4 p-4 text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-800/40 rounded-full text-left font-bold transition-all"><i class="fas fa-bolt text-xl w-6 text-center"></i> <span class="hidden lg:block">Muammolar</span></button>
+                <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+                    <p class="px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 mt-4">Asosiy</p>
+                    <button onclick="switchTab('dashboard', this)" class="nav-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left font-medium active-tab bg-blue-50 dark:bg-blue-900/20 text-brand"><i class="fas fa-chart-pie w-5 text-center"></i> Tahlil</button>
+                    <button onclick="switchTab('startups', this)" class="nav-btn w-full flex items-center gap-3 px-4 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg text-left font-medium transition"><i class="fas fa-rocket w-5 text-center"></i> Startaplar</button>
+                    
+                    <p class="px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 mt-6">Bozor</p>
+                    <button onclick="switchTab('talents', this)" class="nav-btn w-full flex items-center gap-3 px-4 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg text-left font-medium transition"><i class="fas fa-user-astronaut w-5 text-center"></i> Kadrlar</button>
+                    <button onclick="switchTab('problems', this)" class="nav-btn w-full flex items-center gap-3 px-4 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg text-left font-medium transition"><i class="fas fa-fire w-5 text-center"></i> Muammolar</button>
                 </nav>
-                <div class="p-4 border-t border-slate-200/50 dark:border-slate-700/30 flex flex-col gap-3">
-                    <button class="install-btn btn-eco w-full py-3 rounded-full flex justify-center items-center gap-2 font-bold"><i class="fas fa-download"></i> <span class="hidden lg:block">O'rnatish</span></button>
-                    <button onclick="toggleTheme()" class="w-full flex items-center justify-center lg:justify-start gap-4 p-4 text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-800/40 rounded-full font-bold transition-all">
-                        <i class="fas fa-moon dark:hidden text-xl w-6 text-center"></i><i class="fas fa-sun hidden dark:block text-amber-400 text-xl w-6 text-center"></i> <span class="hidden lg:block">Mavzu</span>
-                    </button>
+                
+                <div class="p-4 border-t border-slate-100 dark:border-slate-800">
+                    <button class="install-btn w-full mb-2 bg-brand text-white px-4 py-2 rounded-lg font-medium text-sm transition hover:bg-brandhover"><i class="fas fa-download mr-2"></i> O'rnatish</button>
+                    <button onclick="toggleTheme()" class="w-full flex items-center gap-3 px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg font-medium transition"><i class="fas fa-moon dark:hidden w-5 text-center"></i><i class="fas fa-sun hidden dark:block w-5 text-center"></i> Mavzu</button>
                 </div>
             </aside>
 
-            <main class="flex-1 h-full overflow-y-auto p-4 pb-32 md:p-10 z-10 relative">
+            <main class="flex-1 h-full overflow-y-auto p-4 pb-24 md:p-8 z-10">
                 
-                <div class="md:hidden flex justify-between items-center mb-8 px-2">
-                    <img src="/logo.jpg" class="w-12 h-12 rounded-full shadow-sm">
+                <div class="md:hidden flex justify-between items-center mb-6 card-light p-4 rounded-xl">
+                    <div class="flex items-center gap-2">
+                        <img src="${LOGO_URL}" class="w-8 h-8 object-contain">
+                        <span class="font-bold text-slate-900 dark:text-white">ADU Hub</span>
+                    </div>
                     <div class="flex gap-3">
-                        <button onclick="toggleTheme()" class="w-12 h-12 rounded-full eco-glass flex items-center justify-center text-slate-500"><i class="fas fa-moon dark:hidden"></i><i class="fas fa-sun hidden dark:block text-amber-400"></i></button>
-                        <button class="install-btn w-12 h-12 rounded-full btn-eco flex items-center justify-center"><i class="fas fa-download"></i></button>
+                        <button onclick="toggleTheme()" class="text-slate-500"><i class="fas fa-moon dark:hidden"></i><i class="fas fa-sun hidden dark:block"></i></button>
+                        <button class="install-btn text-brand font-bold text-sm">O'rnatish</button>
                     </div>
                 </div>
 
-                <div class="eco-glass p-2 rounded-full mb-10 flex flex-col md:flex-row gap-2 items-center sticky top-2 z-30 shadow-sm">
+                <div class="card-light p-2 rounded-xl mb-8 flex flex-col md:flex-row gap-2 items-center sticky top-0 z-30">
                     <div class="relative w-full">
-                        <i class="fas fa-search absolute left-6 top-1/2 transform -translate-y-1/2 text-eco"></i>
-                        <input type="text" id="searchInput" onkeyup="filterItems()" placeholder="Platformadan izlash..." class="w-full bg-transparent border-none pl-14 pr-6 py-4 text-slate-800 dark:text-white focus:outline-none placeholder-slate-400 font-medium">
+                        <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="searchInput" onkeyup="filterItems()" placeholder="Qidirish..." class="w-full bg-transparent border-none pl-10 pr-4 py-2.5 text-slate-900 dark:text-white focus:outline-none text-sm">
                     </div>
-                    <select id="categoryFilter" onchange="filterItems()" class="w-full md:w-auto bg-white/50 dark:bg-slate-800/50 rounded-full px-6 py-3 text-slate-700 dark:text-slate-300 font-bold focus:outline-none cursor-pointer border border-transparent hover:border-eco/30 transition">
+                    <div class="w-full md:w-[1px] md:h-6 bg-slate-200 dark:bg-slate-700 hidden md:block"></div>
+                    <select id="categoryFilter" onchange="filterItems()" class="w-full md:w-auto bg-slate-50 dark:bg-slate-800 rounded-lg px-4 py-2 text-slate-700 dark:text-slate-300 text-sm font-medium focus:outline-none cursor-pointer border border-transparent">
                         <option value="all">Barcha toifalar</option>
                         <option value="dasturchi">Dasturchi</option>
                         <option value="dizayner">Dizayner</option>
@@ -264,139 +255,109 @@ app.get('/app', async (req, res) => {
                     </select>
                 </div>
 
-                <div id="dashboard" class="tab-content active">
-                    <div class="mb-10 pl-2">
-                        <h2 class="text-4xl font-extrabold mb-2 tracking-tight">Ekotizim Holati</h2>
-                        <p class="text-slate-500 dark:text-slate-400 font-medium">Platformaning jonli raqamlari</p>
-                    </div>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-5 mb-8">
-                        <div class="eco-glass p-8 rounded-[2.5rem] relative overflow-hidden group hover:-translate-y-2 transition-transform">
-                            <div class="absolute -right-4 -top-4 w-20 h-20 bg-blue-500/10 rounded-full blur-xl group-hover:bg-blue-500/20 transition-all"></div>
-                            <h3 class="text-4xl font-black mb-2 relative z-10">${totalUsers}</h3>
-                            <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest relative z-10">A'zolar</p>
-                        </div>
-                        <div class="eco-glass p-8 rounded-[2.5rem] relative overflow-hidden group hover:-translate-y-2 transition-transform">
-                            <div class="absolute -right-4 -top-4 w-20 h-20 bg-amber-500/10 rounded-full blur-xl group-hover:bg-amber-500/20 transition-all"></div>
-                            <h3 class="text-4xl font-black text-amber-500 mb-2 relative z-10">${teamBuilding}</h3>
-                            <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest relative z-10">Jamoa bosqichi</p>
-                        </div>
-                        <div class="eco-glass p-8 rounded-[2.5rem] relative overflow-hidden group hover:-translate-y-2 transition-transform">
-                            <div class="absolute -right-4 -top-4 w-20 h-20 bg-purple-500/10 rounded-full blur-xl group-hover:bg-purple-500/20 transition-all"></div>
-                            <h3 class="text-4xl font-black text-purple-500 mb-2 relative z-10">${mvpStage}</h3>
-                            <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest relative z-10">MVP bosqichi</p>
-                        </div>
-                        <div class="eco-glass p-8 rounded-[2.5rem] relative overflow-hidden group hover:-translate-y-2 transition-transform border border-eco/30">
-                            <div class="absolute -right-4 -top-4 w-24 h-24 bg-eco/20 rounded-full blur-xl group-hover:bg-eco/40 transition-all"></div>
-                            <h3 class="text-4xl font-black text-eco mb-2 relative z-10">${launched}</h3>
-                            <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest relative z-10">Ishga tushgan</p>
-                        </div>
+                <div id="dashboard" class="tab-content active max-w-6xl mx-auto">
+                    <h2 class="text-2xl font-bold mb-6 text-slate-900 dark:text-white tracking-tight">Tizim Tahlili</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                        <div class="card-light p-5 rounded-xl"><p class="text-slate-500 text-xs font-medium uppercase mb-1">A'zolar</p><h3 class="text-3xl font-bold text-slate-900 dark:text-white">${totalUsers}</h3></div>
+                        <div class="card-light p-5 rounded-xl"><p class="text-slate-500 text-xs font-medium uppercase mb-1">Jamoa bosqichi</p><h3 class="text-3xl font-bold text-amber-500">${teamBuilding}</h3></div>
+                        <div class="card-light p-5 rounded-xl"><p class="text-slate-500 text-xs font-medium uppercase mb-1">MVP bosqichi</p><h3 class="text-3xl font-bold text-purple-500">${mvpStage}</h3></div>
+                        <div class="card-light p-5 rounded-xl border-l-4 border-brand"><p class="text-slate-500 text-xs font-medium uppercase mb-1">Ishga tushgan</p><h3 class="text-3xl font-bold text-brand">${launched}</h3></div>
                     </div>
                 </div>
 
-                <div id="startups" class="tab-content">
-                    <h2 class="text-4xl font-extrabold mb-8 tracking-tight pl-2">Faol Loyihalar</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="projectsGrid">
+                <div id="startups" class="tab-content max-w-6xl mx-auto">
+                    <h2 class="text-2xl font-bold mb-6 text-slate-900 dark:text-white tracking-tight">Faol Loyihalar</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="projectsGrid">
                         ${activeProjects.length > 0 ? activeProjects.map(p => `
-                            <div class="filterable-item bento-card eco-glass p-8 cursor-pointer flex flex-col justify-between" data-title="${p.title.toLowerCase()}" data-category="all" onclick="openModal('${p.id}', '${p.title.replace(/'/g, "\\'")}', '${p.problemCause.replace(/'/g, "\\'")}', '${p.goal.replace(/'/g, "\\'")}', '${p.benefits.replace(/'/g, "\\'")}')">
+                            <div class="filterable-item hover-card card-light p-5 rounded-xl cursor-pointer flex flex-col justify-between" data-title="${p.title.toLowerCase()}" data-category="all" onclick="openModal('${p.id}', '${p.title.replace(/'/g, "\\'")}', '${p.problemCause.replace(/'/g, "\\'")}', '${p.goal.replace(/'/g, "\\'")}', '${p.benefits.replace(/'/g, "\\'")}')">
                                 <div>
-                                    <div class="w-12 h-12 rounded-full bg-eco/10 text-eco flex items-center justify-center mb-6 text-xl"><i class="fas fa-seedling"></i></div>
-                                    <h3 class="text-2xl font-bold mb-3 tracking-tight">${p.title}</h3>
-                                    <p class="text-slate-500 dark:text-slate-400 text-sm line-clamp-3 leading-relaxed font-medium">${p.goal}</p>
-                                </div>
-                                <div class="mt-8 flex items-center justify-between">
-                                    <span class="text-[10px] font-bold uppercase tracking-widest text-eco">Batafsil ko'rish</span>
-                                    <div class="w-8 h-8 rounded-full border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-400"><i class="fas fa-arrow-right text-xs"></i></div>
+                                    <div class="flex justify-between items-start mb-3">
+                                        <h3 class="text-lg font-bold text-slate-900 dark:text-white leading-tight">${p.title}</h3>
+                                        <span class="text-[10px] font-semibold px-2 py-1 rounded bg-blue-50 dark:bg-blue-900/30 text-brand uppercase">Loyiha</span>
+                                    </div>
+                                    <p class="text-slate-600 dark:text-slate-400 text-sm line-clamp-3 leading-relaxed">${p.goal}</p>
                                 </div>
                             </div>
-                        `).join('') : '<p class="text-slate-500 pl-2">Loyihalar yo\'q.</p>'}
+                        `).join('') : '<p class="text-slate-500">Loyihalar yo\'q.</p>'}
                     </div>
                 </div>
 
-                <div id="talents" class="tab-content">
-                    <h2 class="text-4xl font-extrabold mb-8 tracking-tight pl-2">Iqtidorlar</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div id="talents" class="tab-content max-w-6xl mx-auto">
+                    <h2 class="text-2xl font-bold mb-6 text-slate-900 dark:text-white tracking-tight">Iqtidorlar</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         ${resumes.map(r => {
-                            let cat = "dasturchi"; let color="blue"; let icon="fa-code";
+                            let cat = "dasturchi"; let color="blue";
                             let lower = r.skills.toLowerCase();
-                            if(lower.includes("dizayn") || lower.includes("figma")) {cat = "dizayner"; color="purple"; icon="fa-palette";}
-                            if(lower.includes("sotuv") || lower.includes("menejer")) {cat = "sotuv"; color="amber"; icon="fa-chart-line";}
-                            if(lower.includes("smm") || lower.includes("marketing")) {cat = "smm"; color="rose"; icon="fa-hashtag";}
+                            if(lower.includes("dizayn") || lower.includes("figma")) {cat = "dizayner"; color="purple";}
+                            if(lower.includes("sotuv") || lower.includes("menejer")) {cat = "sotuv"; color="amber";}
+                            if(lower.includes("smm") || lower.includes("marketing")) {cat = "smm"; color="red";}
                             return `
-                        <div class="filterable-item bento-card eco-glass p-8" data-title="${r.skills.toLowerCase()}" data-category="${cat}">
-                            <div class="flex justify-between items-start mb-6">
-                                <div class="flex items-center gap-4">
-                                    <img src="/logo.jpg" class="w-12 h-12 rounded-full object-cover grayscale opacity-50">
-                                    <h3 class="text-xl font-bold">@${r.author.username || 'Talaba'}</h3>
-                                </div>
-                                <div class="w-10 h-10 rounded-full bg-${color}-500/10 text-${color}-500 flex items-center justify-center"><i class="fas ${icon}"></i></div>
+                        <div class="filterable-item hover-card card-light p-5 rounded-xl" data-title="${r.skills.toLowerCase()}" data-category="${cat}">
+                            <div class="flex justify-between items-center mb-3">
+                                <h3 class="text-sm font-bold text-slate-900 dark:text-white"><i class="fas fa-user-circle text-slate-400 mr-2 text-lg"></i> @${r.author.username || 'Talaba'}</h3>
+                                <span class="text-[10px] uppercase font-semibold text-${color}-600 dark:text-${color}-400 bg-${color}-50 dark:bg-${color}-900/20 px-2 py-1 rounded">${cat}</span>
                             </div>
-                            <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed font-medium">${r.skills}</p>
+                            <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">${r.skills}</p>
                         </div>`}).join('')}
                     </div>
                 </div>
 
-                <div id="problems" class="tab-content">
-                    <h2 class="text-4xl font-extrabold mb-8 tracking-tight pl-2">Kashfiyot (Muammolar)</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div id="problems" class="tab-content max-w-6xl mx-auto">
+                    <h2 class="text-2xl font-bold mb-6 text-slate-900 dark:text-white tracking-tight">Muammolar</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         ${problems.map(pr => `
-                        <div class="filterable-item bento-card eco-glass p-8 relative" data-title="${pr.description.toLowerCase()}" data-category="all">
-                            <div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-6"><i class="fas fa-lightbulb text-amber-500"></i></div>
-                            <p class="text-slate-700 dark:text-slate-300 font-medium leading-relaxed mb-8 text-lg">"${pr.description}"</p>
-                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Anonim kuzatuvchi</span>
+                        <div class="filterable-item hover-card card-light p-5 rounded-xl" data-title="${pr.description.toLowerCase()}" data-category="all">
+                            <p class="text-slate-700 dark:text-slate-300 text-sm font-medium leading-relaxed mb-4">"${pr.description}"</p>
+                            <span class="text-[10px] text-slate-400 font-semibold uppercase">Anonim yozildi</span>
                         </div>`).join('')}
                     </div>
                 </div>
             </main>
 
-            <nav class="md:hidden fixed bottom-6 left-1/2 transform -translate-x-1/2 w-[90%] z-50">
-                <div class="eco-glass rounded-full flex justify-around items-center p-2 shadow-[0_10px_40px_rgba(16,185,129,0.15)]">
-                    <button onclick="switchTab('dashboard', this)" class="nav-btn mobile-nav-item flex flex-col items-center p-3 rounded-full text-eco bg-eco/10 active-tab transition-all"><i class="fas fa-leaf text-xl"></i></button>
-                    <button onclick="switchTab('startups', this)" class="nav-btn mobile-nav-item flex flex-col items-center p-3 rounded-full text-slate-400 transition-all"><i class="fas fa-rocket text-xl"></i></button>
-                    <button onclick="switchTab('talents', this)" class="nav-btn mobile-nav-item flex flex-col items-center p-3 rounded-full text-slate-400 transition-all"><i class="fas fa-dna text-xl"></i></button>
-                    <button onclick="switchTab('problems', this)" class="nav-btn mobile-nav-item flex flex-col items-center p-3 rounded-full text-slate-400 transition-all"><i class="fas fa-bolt text-xl"></i></button>
+            <nav class="md:hidden card-light fixed bottom-0 left-0 w-full z-50 border-t border-slate-200 dark:border-slate-800 pb-safe rounded-t-2xl shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+                <div class="flex justify-around items-center p-2">
+                    <button onclick="switchTab('dashboard', this)" class="nav-btn mobile-nav-item flex flex-col items-center p-2 text-brand active-tab transition"><i class="fas fa-chart-pie text-lg mb-1"></i><span class="text-[10px] font-medium">Tahlil</span></button>
+                    <button onclick="switchTab('startups', this)" class="nav-btn mobile-nav-item flex flex-col items-center p-2 text-slate-400 transition"><i class="fas fa-rocket text-lg mb-1"></i><span class="text-[10px] font-medium">Loyiha</span></button>
+                    <button onclick="switchTab('talents', this)" class="nav-btn mobile-nav-item flex flex-col items-center p-2 text-slate-400 transition"><i class="fas fa-user-astronaut text-lg mb-1"></i><span class="text-[10px] font-medium">Kadr</span></button>
+                    <button onclick="switchTab('problems', this)" class="nav-btn mobile-nav-item flex flex-col items-center p-2 text-slate-400 transition"><i class="fas fa-fire text-lg mb-1"></i><span class="text-[10px] font-medium">Muammo</span></button>
                 </div>
             </nav>
 
-            <div id="detailModal" class="fixed inset-0 bg-slate-900/40 dark:bg-slate-900/80 z-[60] hidden items-center justify-center p-4 backdrop-blur-md transition-opacity">
-                <div class="eco-glass w-full max-w-2xl rounded-[3rem] p-8 md:p-12 relative shadow-2xl max-h-[90vh] overflow-y-auto">
-                    <button onclick="closeModal()" class="absolute top-6 right-6 w-12 h-12 rounded-full bg-white/50 dark:bg-slate-800/50 text-slate-500 hover:bg-rose-500 hover:text-white flex items-center justify-center transition shadow-sm"><i class="fas fa-times text-xl"></i></button>
-                    <h2 id="modalTitle" class="text-3xl md:text-4xl font-extrabold mb-10 pr-12 tracking-tight leading-tight">Sarlavha</h2>
+            <div id="detailModal" class="fixed inset-0 bg-slate-900/50 dark:bg-slate-900/80 z-[60] hidden items-center justify-center p-4 backdrop-blur-sm">
+                <div class="card-light w-full max-w-xl rounded-2xl p-6 md:p-8 relative shadow-2xl max-h-[90vh] overflow-y-auto">
+                    <button onclick="closeModal()" class="absolute top-4 right-4 w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition"><i class="fas fa-times"></i></button>
+                    <h2 id="modalTitle" class="text-xl md:text-2xl font-bold mb-6 pr-8 text-slate-900 dark:text-white">Sarlavha</h2>
                     
-                    <div class="space-y-4 mb-10">
-                        <div class="bg-white/60 dark:bg-slate-800/40 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-700/30">
-                            <h4 class="text-[10px] font-bold text-rose-500 uppercase tracking-widest mb-3 flex items-center gap-2"><i class="fas fa-exclamation-circle text-sm"></i> Muammo Sababi</h4>
-                            <p id="modalCause" class="text-slate-700 dark:text-slate-300 font-medium leading-relaxed">...</p>
+                    <div class="space-y-4 mb-8">
+                        <div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-100 dark:border-slate-700/50">
+                            <h4 class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-2">Muammo Sababi</h4>
+                            <p id="modalCause" class="text-slate-700 dark:text-slate-300 text-sm">...</p>
                         </div>
-                        <div class="bg-white/60 dark:bg-slate-800/40 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-700/30">
-                            <h4 class="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-3 flex items-center gap-2"><i class="fas fa-bullseye text-sm"></i> Asosiy Maqsad</h4>
-                            <p id="modalGoal" class="text-slate-700 dark:text-slate-300 font-medium leading-relaxed">...</p>
+                        <div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-100 dark:border-slate-700/50">
+                            <h4 class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-2">Asosiy Maqsad</h4>
+                            <p id="modalGoal" class="text-slate-700 dark:text-slate-300 text-sm">...</p>
                         </div>
-                        <div class="bg-white/60 dark:bg-slate-800/40 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-700/30">
-                            <h4 class="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-3 flex items-center gap-2"><i class="fas fa-chart-pie text-sm"></i> Manfaatdorlar</h4>
-                            <p id="modalBenefits" class="text-slate-700 dark:text-slate-300 font-medium leading-relaxed">...</p>
+                        <div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-100 dark:border-slate-700/50">
+                            <h4 class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-2">Manfaatdorlar</h4>
+                            <p id="modalBenefits" class="text-slate-700 dark:text-slate-300 text-sm">...</p>
                         </div>
                     </div>
-                    <a id="modalActionBtn" href="#" target="_blank" class="btn-eco w-full flex items-center justify-center gap-3 py-6 text-xl rounded-full shadow-xl">
-                        Jamoaga qo'shilish <i class="fas fa-arrow-right"></i>
+                    <a id="modalActionBtn" href="#" target="_blank" class="bg-brand hover:bg-brandhover w-full flex items-center justify-center gap-2 py-3.5 text-white font-semibold rounded-lg transition shadow-sm">
+                        <i class="fab fa-telegram-plane"></i> Jamoaga qo'shilish
                     </a>
                 </div>
             </div>
 
             ${installScript}
             <script>
-                // 🔐 LOGIN LOGIC
                 if(localStorage.getItem('adu_web_auth') === 'verified') document.getElementById('authGateway').style.display = 'none';
                 function checkLogin() {
                     if(document.getElementById('loginEmail').value.trim() === 'admin@adu.uz' && document.getElementById('loginCode').value.trim() === '7777') {
                         localStorage.setItem('adu_web_auth', 'verified');
-                        document.getElementById('authGateway').style.opacity = '0'; setTimeout(() => document.getElementById('authGateway').style.display = 'none', 400);
-                    } else {
-                        const err = document.getElementById('authErrorMsg');
-                        err.classList.remove('hidden'); err.classList.remove('animate-bounce'); void err.offsetWidth; err.classList.add('animate-bounce');
-                    }
+                        document.getElementById('authGateway').style.opacity = '0'; setTimeout(() => document.getElementById('authGateway').style.display = 'none', 300);
+                    } else { document.getElementById('authErrorMsg').classList.remove('hidden'); }
                 }
 
-                // 🔍 FILTER LOGIC
                 function filterItems() {
                     const txt = document.getElementById('searchInput').value.toLowerCase();
                     const cat = document.getElementById('categoryFilter').value;
@@ -405,17 +366,15 @@ app.get('/app', async (req, res) => {
                     });
                 }
 
-                // 📱 TABS LOGIC
                 function switchTab(id, btn) {
                     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-                    document.querySelectorAll('.nav-btn').forEach(el => { el.classList.remove('active-tab', 'bg-white', 'dark:bg-slate-800/80', 'text-eco', 'shadow-sm'); el.classList.add('text-slate-500', 'dark:text-slate-400'); });
-                    if(document.querySelector('.mobile-nav-item')) document.querySelectorAll('.mobile-nav-item').forEach(el => { el.classList.remove('active-tab', 'bg-eco/10', 'text-eco'); el.classList.add('text-slate-400'); });
+                    document.querySelectorAll('.nav-btn').forEach(el => { el.classList.remove('active-tab', 'bg-blue-50', 'dark:bg-blue-900/20', 'text-brand'); el.classList.add('text-slate-600', 'dark:text-slate-400'); });
+                    if(document.querySelector('.mobile-nav-item')) document.querySelectorAll('.mobile-nav-item').forEach(el => { el.classList.remove('active-tab', 'text-brand'); el.classList.add('text-slate-400'); });
                     document.getElementById(id).classList.add('active');
-                    if(btn.classList.contains('mobile-nav-item')) { btn.classList.add('active-tab', 'bg-eco/10', 'text-eco'); btn.classList.remove('text-slate-400'); } 
-                    else { btn.classList.add('active-tab', 'bg-white', 'dark:bg-slate-800/80', 'text-eco', 'shadow-sm'); btn.classList.remove('text-slate-500', 'dark:text-slate-400'); }
+                    if(btn.classList.contains('mobile-nav-item')) { btn.classList.add('active-tab', 'text-brand'); btn.classList.remove('text-slate-400'); } 
+                    else { btn.classList.add('active-tab', 'bg-blue-50', 'dark:bg-blue-900/20', 'text-brand'); btn.classList.remove('text-slate-600', 'dark:text-slate-400'); }
                 }
 
-                // 🖼 MODAL LOGIC
                 function openModal(id, title, cause, goal, benefits) {
                     document.getElementById('modalTitle').innerText = title; document.getElementById('modalCause').innerText = cause;
                     document.getElementById('modalGoal').innerText = goal; document.getElementById('modalBenefits').innerText = benefits;
