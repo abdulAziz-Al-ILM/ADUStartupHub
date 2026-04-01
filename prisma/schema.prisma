@@ -9,7 +9,7 @@ datasource db {
 
 model User {
   id              Int       @id @default(autoincrement())
-  telegramId      BigInt    @unique
+  telegramId      BigInt    @unique ?
   username        String?
   
   // Korporativ pochta xavfsizligi
