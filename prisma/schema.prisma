@@ -7,83 +7,82 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// 👤 FOYDALANUVCHILAR JADVALI
 model User {
-  id              Int       @id @default(autoincrement())
-  telegramId      BigInt    @unique ?
-  username        String?
-  
-  // Korporativ pochta xavfsizligi
-  email           String?   @unique
-  isVerified      Boolean   @default(false)
-  otpCode         String?   // Pochtaga boradigan tasdiqlash kodi
-  
-  reportCount     Int       @default(0)
-  isBanned        Boolean   @default(false)
-  
-  projectsWeek    Int       @default(0) 
-  lastProjectDate DateTime  @default(now())
-  problemsDay     Int       @default(0) 
-  lastProblemDate DateTime  @default(now())
-  resumesDay      Int       @default(0) 
-  lastResumeDate  DateTime  @default(now())
-  requestsDay     Int       @default(0) 
-  lastRequestDate DateTime  @default(now())
+  id          Int       @id @default(autoincrement())
+  telegramId  BigInt?   @unique
+  username    String?
+  email       String?   @unique
+  isVerified  Boolean   @default(false)
+  otpCode     String?
+  reportCount Int       @default(0)
+  isBanned    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
 
-  createdAt       DateTime  @default(now())
-  
-  projects        Project[]
-  requests        Request[]
-  problems        Problem[]
-  resumes         Resume[]
+  // Aloqalar (Relations)
+  projects    Project[]
+  resumes     Resume[]
+  problems    Problem[]
+  requests    Request[]
 }
 
+// 🚀 STARTAP LOYIHALAR JADVALI
 model Project {
-  id              Int       @id @default(autoincrement())
-  title           String
-  
-  problemCause    String    @default("Ko'rsatilmagan") 
-  goal            String    @default("Ko'rsatilmagan") 
-  benefits        String    @default("Ko'rsatilmagan") 
-  hiddenSolution  String    @default("Ko'rsatilmagan") 
-  
-  groupLink       String    @default("Kiritilmagan")
-  category        String    @default("IT & Dasturlash") 
-  status          String    @default("TEAM_BUILDING") 
-  cancelReason    String?   
+  id             Int       @id @default(autoincrement())
+  title          String
+  problemCause   String
+  goal           String
+  benefits       String
+  hiddenSolution String?   @default("Ko'rsatilmagan")
+  groupLink      String?
+  status         String    @default("TEAM_BUILDING") // Holati: TEAM_BUILDING, MVP, LAUNCHED, CANCELLED
+  cancelReason   String?
+  createdAt      DateTime  @default(now())
 
-  authorId        Int
-  author          User      @relation(fields: [authorId], references: [id])
-  createdAt       DateTime  @default(now())
-  requests        Request[]
+  // Muallif bilan aloqa
+  authorId       Int
+  author         User      @relation(fields: [authorId], references: [id])
+  
+  // Kelib tushgan arizalar
+  requests       Request[]
 }
 
+// 👨‍💻 KADRLAR (REZYUME) JADVALI
 model Resume {
-  id              Int       @id @default(autoincrement())
-  skills          String    
-  category        String    @default("Dasturchi") 
-  authorId        Int
-  author          User      @relation(fields: [authorId], references: [id])
-  createdAt       DateTime  @default(now())
+  id        Int      @id @default(autoincrement())
+  skills    String
+  createdAt DateTime @default(now())
+
+  // Muallif bilan aloqa
+  authorId  Int
+  author    User     @relation(fields: [authorId], references: [id])
 }
 
+// ❗ MUAMMOLAR (KASHFIYOT) JADVALI
 model Problem {
-  id              Int       @id @default(autoincrement())
-  description     String
-  authorId        Int
-  author          User      @relation(fields: [authorId], references: [id])
-  createdAt       DateTime  @default(now())
+  id          Int      @id @default(autoincrement())
+  description String
+  createdAt   DateTime @default(now())
+
+  // Muallif bilan aloqa
+  authorId    Int
+  author      User     @relation(fields: [authorId], references: [id])
 }
 
+// 🤝 JAMOAGA QO'SHILISH ARIZALARI JADVALI
 model Request {
-  id              Int       @id @default(autoincrement())
-  coverLetter     String
-  status          String    @default("PENDING") 
-  
-  projectId       Int
-  project         Project   @relation(fields: [projectId], references: [id])
-  applicantId     Int
-  applicant       User      @relation(fields: [applicantId], references: [id])
-  createdAt       DateTime  @default(now())
+  id          Int      @id @default(autoincrement())
+  coverLetter String
+  createdAt   DateTime @default(now())
 
+  // Qaysi loyihaga arizaligi
+  projectId   Int
+  project     Project  @relation(fields: [projectId], references: [id])
+
+  // Kim ariza bergani
+  applicantId Int
+  applicant   User     @relation(fields: [applicantId], references: [id])
+
+  // Bitta odam bitta loyihaga faqat 1 marta ariza bera oladi (Instagram 1x qoidasi)
   @@unique([projectId, applicantId])
 }
