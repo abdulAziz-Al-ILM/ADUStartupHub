@@ -22,11 +22,10 @@ app.get('/manifest.json', (req, res) => {
 });
 app.get('/sw.js', (req, res) => {
     res.setHeader('Content-Type', 'application/javascript');
-    // Ilova deb tan olinishi uchun Service Worker
     res.send(`
         self.addEventListener('install', (e) => { self.skipWaiting(); }); 
         self.addEventListener('activate', (e) => { e.waitUntil(clients.claim()); }); 
-        self.addEventListener('fetch', (e) => { e.respondWith(fetch(e.request).catch(() => new Response('Internet yo\\'q'))); });
+        self.addEventListener('fetch', (e) => { e.respondWith(fetch(e.request).catch(() => new Response('Internet yoq'))); });
     `);
 });
 
@@ -42,7 +41,6 @@ app.post('/api/auth/send-otp', async (req, res) => {
     
     let user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-        // Telegram ID o'rniga vaqtinchalik noyob raqam beriladi (saytdan kirganlar uchun)
         await prisma.user.create({ data: { email, otpCode: otp, isVerified: false, telegramId: BigInt(Date.now()) } }); 
     } else {
         await prisma.user.update({ where: { email }, data: { otpCode: otp } });
@@ -81,7 +79,7 @@ app.post('/api/add-item', async (req, res) => {
 // 🎨 UMUMIY DIZAYN (Premium SaaS)
 // ==========================================
 const headElements = `
-    <link rel="manifest" href="/manifest.json?v=10">
+    <link rel="manifest" href="/manifest.json?v=11">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script>
@@ -119,6 +117,9 @@ const installScript = `
         document.querySelectorAll('.install-btn').forEach(b => b.addEventListener('click', handleInstall));
     </script>
 `;
+
+// Xavfsiz matn yordamchisi (Html in'eksiyadan himoya)
+const safeHTML = (str) => str ? String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/[\r\n]+/g, ' ') : '';
 
 // ==========================================
 // 1-XONA: LANDING PAGE
@@ -256,10 +257,10 @@ app.get('/app', async (req, res) => {
                     <h2 class="text-2xl font-bold mb-6">Faol Loyihalar</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                         ${activeProjects.length > 0 ? activeProjects.map(p => `
-                            <div class="hover-card card-light p-5 rounded-xl flex flex-col justify-between cursor-pointer" onclick="openModal('${p.title.replace(/'/g, "\\'")}', '${p.problemCause.replace(/'/g, "\\'")}', '${p.goal.replace(/'/g, "\\'")}', '${p.benefits.replace(/'/g, "\\'")}', '${p.id}')">
+                            <div class="hover-card card-light p-5 rounded-xl flex flex-col justify-between cursor-pointer" onclick="openModal('${safeHTML(p.title)}', '${safeHTML(p.problemCause)}', '${safeHTML(p.goal)}', '${safeHTML(p.benefits)}', '${p.id}')">
                                 <div>
-                                    <h3 class="text-lg font-bold mb-2">${p.title}</h3>
-                                    <p class="text-slate-500 text-sm line-clamp-3">${p.goal}</p>
+                                    <h3 class="text-lg font-bold mb-2">${safeHTML(p.title)}</h3>
+                                    <p class="text-slate-500 text-sm line-clamp-3">${safeHTML(p.goal)}</p>
                                 </div>
                             </div>
                         `).join('') : '<p class="text-slate-500">Loyihalar yo\'q.</p>'}
@@ -269,14 +270,14 @@ app.get('/app', async (req, res) => {
                 <div id="talents" class="tab-content max-w-6xl mx-auto">
                     <h2 class="text-2xl font-bold mb-6">Kadrlar va Iqtidorlar</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        ${resumes.map(r => `<div class="card-light p-5 rounded-xl border-l-4 border-brand"><p class="text-slate-600 dark:text-slate-400 text-sm">${r.skills}</p></div>`).join('')}
+                        ${resumes.map(r => `<div class="card-light p-5 rounded-xl border-l-4 border-brand"><p class="text-slate-600 dark:text-slate-400 text-sm">${safeHTML(r.skills)}</p></div>`).join('')}
                     </div>
                 </div>
 
                 <div id="problems" class="tab-content max-w-6xl mx-auto">
                     <h2 class="text-2xl font-bold mb-6">Anonim Muammolar</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        ${problems.map(pr => `<div class="card-light p-5 rounded-xl"><p class="text-slate-700 dark:text-slate-300 text-sm font-medium">"${pr.description}"</p><span class="text-[10px] text-slate-400 font-bold uppercase mt-3 inline-block">Anonim</span></div>`).join('')}
+                        ${problems.map(pr => `<div class="card-light p-5 rounded-xl"><p class="text-slate-700 dark:text-slate-300 text-sm font-medium">"${safeHTML(pr.description)}"</p><span class="text-[10px] text-slate-400 font-bold uppercase mt-3 inline-block">Anonim</span></div>`).join('')}
                     </div>
                 </div>
             </main>
@@ -366,7 +367,7 @@ app.get('/app', async (req, res) => {
                     if(!btn.innerHTML.includes('text-[10px]')) btn.classList.add('bg-blue-50', 'dark:bg-blue-900/20');
                 }
 
-                // 3. MA'LUMOT QO'SHISH FORMASI (Profil)
+                // 3. MA'LUMOT QO'SHISH FORMASI
                 let currentFormType = '';
                 function openWebForm(type) {
                     currentFormType = type;
@@ -376,10 +377,10 @@ app.get('/app', async (req, res) => {
                         content.innerHTML = '<input id="fTitle" placeholder="Loyiha nomi" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3 rounded-lg text-sm mb-2 focus:outline-none focus:border-brand"><input id="fCause" placeholder="Muammo sababi" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3 rounded-lg text-sm mb-2 focus:outline-none focus:border-brand"><textarea id="fGoal" placeholder="Asosiy maqsad" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3 rounded-lg text-sm mb-2 h-20 focus:outline-none focus:border-brand"></textarea><input id="fBenefit" placeholder="Kimga foyda keltiradi?" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3 rounded-lg text-sm focus:outline-none focus:border-brand">';
                     } else if(type === 'resume') {
                         document.getElementById('formTitle').innerText = "Rezyume kiritish";
-                        content.innerHTML = '<textarea id="fSkills" placeholder="Qanday ko\\'nikmalaringiz bor? (Masalan: Node.js, Figma, Sotuv)" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3 rounded-lg text-sm h-32 focus:outline-none focus:border-brand"></textarea>';
+                        content.innerHTML = '<textarea id="fSkills" placeholder="Qanday qobiliyatlaringiz bor? (Masalan: Node.js, Figma, Sotuv)" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3 rounded-lg text-sm h-32 focus:outline-none focus:border-brand"></textarea>';
                     } else {
                         document.getElementById('formTitle').innerText = "Muammo yozish";
-                        content.innerHTML = '<textarea id="fDesc" placeholder="Kuzatgan muammongizni yozing (Anonim tarzda e\\'lon qilinadi)" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3 rounded-lg text-sm h-32 focus:outline-none focus:border-brand"></textarea>';
+                        content.innerHTML = '<textarea id="fDesc" placeholder="Kuzatgan muammongizni yozing (Anonim tarzda chop etiladi)" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3 rounded-lg text-sm h-32 focus:outline-none focus:border-brand"></textarea>';
                     }
                     document.getElementById('webFormModal').classList.remove('hidden');
                     document.getElementById('webFormModal').classList.add('flex');
@@ -423,15 +424,12 @@ app.get('/app', async (req, res) => {
             </script>
         </body>
         </html>
-        `;
+        `); // <--- XATO MANA SHU YERDA EDI (Yopiluvchi qavs qo'yildi!)
     } catch (error) { console.error(error); res.status(500).send("Server xatosi"); }
 });
 
 function startServer(port) {
-    // Railway tashqaridan kira olishi uchun '0.0.0.0' qat'iy belgilandi
-    app.listen(port, '0.0.0.0', () => { 
-        console.log(`🌐 Web Server ${port}-portda ishga tushdi.`); 
-    });
+    app.listen(port, '0.0.0.0', () => { console.log(`🌐 Web Server ${port}-portda ishga tushdi.`); });
 }
 
 module.exports = { startServer };
