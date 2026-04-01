@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 app.use(express.json());
 
 // ==========================================
-// PWA Sozlamalari
+// PWA Sozlamalari (Ilova Logotipi shu yerda)
 // ==========================================
 app.get('/manifest.json', (req, res) => {
     res.json({
@@ -16,7 +16,15 @@ app.get('/manifest.json', (req, res) => {
         "display": "standalone",
         "background_color": "#0f172a",
         "theme_color": "#3b82f6",
-        "icons": [{"src": "https://cdn-icons-png.flaticon.com/512/2040/2040946.png", "sizes": "512x512", "type": "image/png"}]
+        "icons": [
+            {
+                // 🔥 YANGI 3D RAKETA LOGOTIPI
+                "src": "https://cdn-icons-png.flaticon.com/512/3135/3135715.png", 
+                "sizes": "512x512", 
+                "type": "image/png",
+                "purpose": "any maskable" // Ikonka telefonda chiroyli shaklga kirishi uchun
+            }
+        ]
     });
 });
 app.get('/sw.js', (req, res) => {
@@ -200,7 +208,6 @@ app.get('/app', async (req, res) => {
                     <h2 class="text-3xl font-extrabold text-white mb-6">Kadrlar va Iqtidorlar</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="talentsGrid">
                         ${resumes.map(r => {
-                            // Soddalashtirilgan toifaga ajratish (matn ichidan qidirib)
                             let cat = "dasturchi";
                             let lower = r.skills.toLowerCase();
                             if(lower.includes("dizayn") || lower.includes("figma")) cat = "dizayner";
@@ -255,7 +262,6 @@ app.get('/app', async (req, res) => {
             </div>
 
             <script>
-                // 🔐 LOGIN DARVOZASI MANTIQI
                 if(localStorage.getItem('adu_web_auth') === 'verified') {
                     document.getElementById('authGateway').style.display = 'none';
                 }
@@ -263,7 +269,6 @@ app.get('/app', async (req, res) => {
                     const email = document.getElementById('loginEmail').value.trim();
                     const code = document.getElementById('loginCode').value.trim();
                     
-                    // 🔑 MAXSUS ISTISNO (Siz uchun yashirin eshik)
                     if(email === 'admin@adu.uz' && code === '7777') {
                         localStorage.setItem('adu_web_auth', 'verified');
                         document.getElementById('authGateway').style.opacity = '0';
@@ -273,7 +278,6 @@ app.get('/app', async (req, res) => {
                     }
                 }
 
-                // 🔍 QIDIRUV VA TOIFALAR MANTIQI
                 function filterItems() {
                     const searchText = document.getElementById('searchInput').value.toLowerCase();
                     const category = document.getElementById('categoryFilter').value;
@@ -291,7 +295,6 @@ app.get('/app', async (req, res) => {
                     });
                 }
 
-                // TABS & MODALS
                 function switchTab(id, btn) {
                     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
                     document.querySelectorAll('.nav-btn').forEach(el => { el.classList.remove('active-tab', 'bg-slate-700/50', 'text-white'); el.classList.add('text-slate-300'); });
@@ -308,7 +311,6 @@ app.get('/app', async (req, res) => {
                 }
                 function closeModal() { document.getElementById('detailModal').classList.add('hidden'); document.getElementById('detailModal').classList.remove('flex'); }
 
-                // ANIMATSIYA
                 const canvas = document.getElementById('canvas-bg'); const ctx = canvas.getContext('2d');
                 let width, height, particles = [];
                 function resize() { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; }
@@ -326,7 +328,7 @@ app.get('/app', async (req, res) => {
         </html>
         `;
         res.send(html);
-    } catch (error) { res.status(500).send("Server xatosi"); }
+    } catch (error) { console.error(error); res.status(500).send("Server xatosi"); }
 });
 
 function startServer(port) {
