@@ -7,7 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// 👤 FOYDALANUVCHILAR JADVALI
 model User {
   id          Int       @id @default(autoincrement())
   telegramId  BigInt?   @unique
@@ -15,18 +14,21 @@ model User {
   email       String?   @unique
   isVerified  Boolean   @default(false)
   otpCode     String?
+  
+  // 👑 YANGI QO'SHILGAN FUNKSIYALAR:
+  role        String    @default("STUDENT") // STUDENT, TUTOR, ADMIN
+  invitedBy   String?   // Kim taklif qilgani (Tyutor pochtasi)
+  
   reportCount Int       @default(0)
   isBanned    Boolean   @default(false)
   createdAt   DateTime  @default(now())
 
-  // Aloqalar (Relations)
   projects    Project[]
-  resumes     Resume[]
   problems    Problem[]
+  resumes     Resume[]
   requests    Request[]
 }
 
-// 🚀 STARTAP LOYIHALAR JADVALI
 model Project {
   id             Int       @id @default(autoincrement())
   title          String
@@ -35,54 +37,37 @@ model Project {
   benefits       String
   hiddenSolution String?   @default("Ko'rsatilmagan")
   groupLink      String?
-  status         String    @default("TEAM_BUILDING") // Holati: TEAM_BUILDING, MVP, LAUNCHED, CANCELLED
+  status         String    @default("TEAM_BUILDING")
   cancelReason   String?
   createdAt      DateTime  @default(now())
-
-  // Muallif bilan aloqa
   authorId       Int
   author         User      @relation(fields: [authorId], references: [id])
-  
-  // Kelib tushgan arizalar
   requests       Request[]
 }
 
-// 👨‍💻 KADRLAR (REZYUME) JADVALI
 model Resume {
   id        Int      @id @default(autoincrement())
   skills    String
   createdAt DateTime @default(now())
-
-  // Muallif bilan aloqa
   authorId  Int
   author    User     @relation(fields: [authorId], references: [id])
 }
 
-// ❗ MUAMMOLAR (KASHFIYOT) JADVALI
 model Problem {
   id          Int      @id @default(autoincrement())
   description String
   createdAt   DateTime @default(now())
-
-  // Muallif bilan aloqa
   authorId    Int
   author      User     @relation(fields: [authorId], references: [id])
 }
 
-// 🤝 JAMOAGA QO'SHILISH ARIZALARI JADVALI
 model Request {
   id          Int      @id @default(autoincrement())
   coverLetter String
   createdAt   DateTime @default(now())
-
-  // Qaysi loyihaga arizaligi
   projectId   Int
   project     Project  @relation(fields: [projectId], references: [id])
-
-  // Kim ariza bergani
   applicantId Int
   applicant   User     @relation(fields: [applicantId], references: [id])
-
-  // Bitta odam bitta loyihaga faqat 1 marta ariza bera oladi (Instagram 1x qoidasi)
   @@unique([projectId, applicantId])
 }
