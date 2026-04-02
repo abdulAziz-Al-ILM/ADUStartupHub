@@ -9,26 +9,27 @@ const prisma = new PrismaClient();
 app.use(express.json());
 
 // ==========================================
-// 🚀 RAKETA LOGOTIPI VA ANTI-KESH PWA
+// 🚀 RAKETA LOGOTIPI (100% Kod yordamida chizilgan, faylsiz)
 // ==========================================
-const LOGO_URL = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+app.get('/icon.svg', (req, res) => {
+    res.setHeader('Content-Type', 'image/svg+xml');
+    res.send(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#2563eb"/><path fill="#ffffff" d="M398.5 113.5c-11.3-11.3-29.6-11.3-40.9 0l-55.3 55.3c-15.6-4.8-32.6-1.7-45.4 8.7L137.5 296.9c-11.3 11.3-11.3 29.6 0 40.9l45.4 45.4-37.3 119.2c-4.8 15.6-1.7 32.6 8.7 45.4 14.8 12 34.3 19.5 53.4 15.9 44.5-8.4 118.7-41.5 167.3-90.1 48.6-48.6 81.7-122.8 90.1-167.3 3.6-19.1-3.9-38.6-18.7-50.6l-55.3-55.3c10.4-12.8 13.5-29.8 8.7-45.4l119.2-37.3c15.6-4.8 32.6-1.7 45.4 8.7 12 14.8 19.5 34.3 15.9 53.4-8.4 44.5-41.5 118.7-90.1 167.3-48.6 48.6-122.8 81.7-167.3 90.1-19.1 3.6-38.6-3.9-50.6-18.7-10.4-12.8-13.5-29.8-8.7-45.4l55.3-55.3c-11.3-11.3-11.3-29.6 0-40.9s29.6-11.3 40.9 0l55.3-55.3c15.6 4.8 32.6 1.7 45.4-8.7L398.5 113.5zM256 224c0-17.7 14.3-32 32-32s32 14.3 32 32-14.3 32-32 32-32-14.3-32-32z"/></svg>`);
+});
 
-// Eski manifest.json ni unutishi uchun mutlaqo yangi nom berdik:
 app.get('/app.webmanifest', (req, res) => {
     res.json({
         "name": "ADU Startup Hub", "short_name": "ADU Hub", "start_url": "/app", "display": "standalone",
         "background_color": "#ffffff", "theme_color": "#2563eb",
-        "icons": [{"src": LOGO_URL, "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}]
+        "icons": [{"src": "/icon.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable"}]
     });
 });
 
-// Eski sw.js ni unutishi uchun yangi worker.js
-app.get('/worker.js', (req, res) => {
+app.get('/sw.js', (req, res) => {
     res.setHeader('Content-Type', 'application/javascript');
     res.send(`
         self.addEventListener('install', (e) => { self.skipWaiting(); }); 
         self.addEventListener('activate', (e) => { e.waitUntil(clients.claim()); }); 
-        self.addEventListener('fetch', (e) => { e.respondWith(fetch(e.request).catch(() => new Response('Internet yoq'))); });
+        self.addEventListener('fetch', (e) => { e.respondWith(fetch(e.request).catch(() => new Response('Internet yo\\'q'))); });
     `);
 });
 
@@ -108,19 +109,14 @@ const headElements = `
 
 const installScript = `
     <script>
-        // ⚔️ QOTIL SKRIPT: BARCHA ESKI KESHLARNI TOZALASH
+        // Keshni yengish uchun qotil skript
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) {
-                    registration.unregister(); // Eski Kostyumli odamni xotiradan o'ldiradi
-                }
-            }).then(() => {
-                // Yangi, toza Service Worker o'rnatiladi
-                navigator.serviceWorker.register('/worker.js');
+                for(let registration of registrations) { registration.unregister(); }
             });
+            navigator.serviceWorker.register('/sw.js');
         }
 
-        // O'rnatish logikasi
         let dp; window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); dp = e; }); 
         function handleInstall() { 
             if(dp) { dp.prompt(); dp.userChoice.then(r => { if(r.outcome === 'accepted') dp = null; }); } 
@@ -136,6 +132,10 @@ const installScript = `
 
 const safeHTML = (str) => str ? String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/[\r\n]+/g, ' ') : '';
 
+// Ikonka Shabloni (UI uchun)
+const ROCKET_ICON = `<div class="w-8 h-8 rounded-lg bg-brand flex items-center justify-center text-white shadow-sm"><i class="fas fa-rocket text-sm"></i></div>`;
+const ROCKET_ICON_LARGE = `<div class="w-16 h-16 rounded-2xl bg-brand flex items-center justify-center text-white shadow-xl mx-auto mb-4"><i class="fas fa-rocket text-3xl"></i></div>`;
+
 // ==========================================
 // 1-XONA: LANDING PAGE
 // ==========================================
@@ -148,10 +148,10 @@ app.get('/', async (req, res) => {
         <!DOCTYPE html><html lang="uz"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>ADU Hub</title>${headElements}</head>
         <body class="min-h-screen flex flex-col relative"><div class="header-glow"></div>
             <nav class="w-full card-light fixed top-0 z-50 px-6 py-4 flex justify-between items-center bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
-                <div class="flex items-center gap-3"><img src="${LOGO_URL}" class="w-8 h-8 object-contain"><span class="text-xl font-bold tracking-tight">ADU Hub</span></div>
+                <div class="flex items-center gap-3">${ROCKET_ICON}<span class="text-xl font-bold tracking-tight">ADU Hub</span></div>
                 <div class="flex gap-4">
                     <button onclick="toggleTheme()" class="text-slate-500"><i class="fas fa-moon dark:hidden"></i><i class="fas fa-sun hidden dark:block"></i></button>
-                    <button class="install-btn bg-brand text-white px-4 py-2 rounded-lg font-semibold text-sm shadow-sm hidden md:block">Ilovani olish</button>
+                    <button class="install-btn bg-brand text-white px-4 py-2 rounded-lg font-semibold text-sm shadow-sm hidden md:block hover:bg-brandhover">Ilovani olish</button>
                 </div>
             </nav>
             <main class="flex-1 flex flex-col items-center justify-center text-center px-4 pt-32 pb-20 z-10">
@@ -197,7 +197,7 @@ app.get('/app', async (req, res) => {
 
             <div id="authGateway" class="fixed inset-0 bg-slate-900/80 z-[100] flex flex-col items-center justify-center p-4 backdrop-blur-sm">
                 <div class="card-light p-8 rounded-2xl max-w-sm w-full text-center shadow-xl">
-                    <img src="${LOGO_URL}" alt="Logo" class="w-16 h-16 mx-auto mb-4 object-contain">
+                    ${ROCKET_ICON_LARGE}
                     <h2 class="text-2xl font-bold mb-2">Tizimga kirish</h2>
                     <p class="text-slate-500 mb-6 text-sm">Korporativ pochtani kiriting (@adu.uz)</p>
                     
@@ -211,7 +211,7 @@ app.get('/app', async (req, res) => {
 
             <aside class="w-64 card-light h-full flex flex-col hidden md:flex z-20 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
                 <div class="p-6 flex items-center gap-3 border-b border-slate-100 dark:border-slate-800">
-                    <img src="${LOGO_URL}" alt="Logo" class="w-8 h-8 object-contain">
+                    ${ROCKET_ICON}
                     <h1 class="text-lg font-bold tracking-tight">ADU Hub</h1>
                 </div>
                 <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
@@ -232,7 +232,7 @@ app.get('/app', async (req, res) => {
 
             <main class="flex-1 h-full overflow-y-auto p-4 pb-24 md:p-8 z-10">
                 <div class="md:hidden flex justify-between items-center mb-6 card-light p-4 rounded-xl">
-                    <div class="flex items-center gap-2"><img src="${LOGO_URL}" class="w-8 h-8"><span class="font-bold">ADU Hub</span></div>
+                    <div class="flex items-center gap-2">${ROCKET_ICON}<span class="font-bold">ADU Hub</span></div>
                     <div class="flex gap-3">
                         <button onclick="toggleTheme()" class="text-slate-500"><i class="fas fa-moon dark:hidden"></i><i class="fas fa-sun hidden dark:block"></i></button>
                         <button class="install-btn text-brand font-bold text-sm">O'rnatish</button>
@@ -345,7 +345,6 @@ app.get('/app', async (req, res) => {
 
             ${installScript}
             <script>
-                // 1. LOGIN LOGIKASI (Yashirin eshik himoyasi)
                 let authEmail = localStorage.getItem('adu_web_auth_email');
                 if(authEmail) { 
                     document.getElementById('authGateway').style.display = 'none'; 
@@ -362,7 +361,6 @@ app.get('/app', async (req, res) => {
                     
                     err.classList.add('hidden'); 
                     
-                    // YASHIRIN ESHIK
                     if(email === 'admin@adu.uz') {
                         if(!waitingForOTP) {
                             waitingForOTP = true;
@@ -376,7 +374,6 @@ app.get('/app', async (req, res) => {
                         }
                     }
 
-                    // ODDIY ESHIK
                     btn.innerText = 'Kuting...';
                     if(!waitingForOTP) {
                         const res = await fetch('/api/auth/send-otp', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ email }) });
@@ -395,7 +392,6 @@ app.get('/app', async (req, res) => {
 
                 function logout() { localStorage.removeItem('adu_web_auth_email'); location.reload(); }
 
-                // 2. TABLARNI ALMASHTIRISH
                 function switchTab(id, btn) {
                     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
                     document.querySelectorAll('.nav-btn').forEach(el => { el.classList.remove('active-tab', 'bg-blue-50', 'dark:bg-blue-900/20', 'text-brand'); el.classList.add('text-slate-600', 'dark:text-slate-400'); });
@@ -404,7 +400,6 @@ app.get('/app', async (req, res) => {
                     if(!btn.innerHTML.includes('text-[10px]')) btn.classList.add('bg-blue-50', 'dark:bg-blue-900/20');
                 }
 
-                // 3. MA'LUMOT QO'SHISH FORMASI
                 let currentFormType = '';
                 function openWebForm(type) {
                     currentFormType = type;
@@ -450,7 +445,6 @@ app.get('/app', async (req, res) => {
                     }
                 }
 
-                // 4. STARTAPNI KO'RISH MODALI
                 function openModal(title, cause, goal, benefits, id) {
                     document.getElementById('modalTitle').innerText = title; document.getElementById('modalCause').innerText = cause;
                     document.getElementById('modalGoal').innerText = goal; document.getElementById('modalBenefits').innerText = benefits;
