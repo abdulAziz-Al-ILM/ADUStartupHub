@@ -80,7 +80,7 @@ app.post('/api/add-item', async (req, res) => {
 });
 
 // ==========================================
-// 🎨 UMUMIY DIZAYN (Premium SaaS)
+// 🎨 UMUMIY DIZAYN (Grid & Ambient Glow)
 // ==========================================
 const headElements = `
     <link rel="manifest" href="/app.webmanifest">
@@ -95,12 +95,25 @@ const headElements = `
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         body { font-family: 'Inter', sans-serif; transition: background-color 0.3s, color 0.3s; -webkit-tap-highlight-color: transparent; }
-        body:not(.dark) { background-color: #f8fafc; color: #0f172a; } .card-light { background: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .dark body { background-color: #0f172a; color: #f8fafc; } .dark .card-light { background: #1e293b; border: 1px solid #334155; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        .header-glow { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 100vw; height: 40vh; background: radial-gradient(circle, rgba(37,99,235,0.08) 0%, transparent 70%); z-index: -1; pointer-events: none; }
-        .dark .header-glow { background: radial-gradient(circle, rgba(37,99,235,0.15) 0%, transparent 70%); }
-        .hover-card { transition: all 0.2s ease; } .hover-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); border-color: #3b82f6; }
-        .dark .hover-card:hover { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); border-color: #3b82f6; }
+        
+        /* Fonga chuqurlik va Grid (Nuqtalar) qo'shamiz */
+        body:not(.dark) { background-color: #f8fafc; color: #0f172a; } 
+        .dark body { background-color: #020617; color: #f8fafc; } /* Ko'zni toliqtirmaydigan to'q qora/slate */
+        
+        .grid-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; background-image: radial-gradient(rgba(15, 23, 42, 0.08) 1px, transparent 1px); background-size: 28px 28px; }
+        .dark .grid-bg { background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px); }
+        
+        /* Yumshoq nur */
+        .ambient-glow { position: fixed; top: -10vh; left: 50%; transform: translateX(-50%); width: 70vw; height: 50vh; background: radial-gradient(ellipse, rgba(37,99,235,0.15) 0%, transparent 70%); z-index: -1; pointer-events: none; filter: blur(60px); }
+        .dark .ambient-glow { background: radial-gradient(ellipse, rgba(37,99,235,0.1) 0%, transparent 70%); }
+
+        /* Shishasimon (Frosted Glass) kartochkalar */
+        .card-light { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(226, 232, 240, 0.8); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); }
+        .dark .card-light { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2); }
+        
+        .hover-card { transition: all 0.2s ease; } .hover-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); border-color: rgba(37,99,235,0.4); }
+        .dark .hover-card:hover { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); border-color: rgba(37,99,235,0.4); }
+        
         @media (display-mode: standalone) { .install-btn { display: none !important; } }
         .tab-content { display: none; animation: fadeIn 0.3s ease; } .tab-content.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -109,7 +122,6 @@ const headElements = `
 
 const installScript = `
     <script>
-        // Keshni yengish uchun qotil skript
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(registrations) {
                 for(let registration of registrations) { registration.unregister(); }
@@ -132,7 +144,6 @@ const installScript = `
 
 const safeHTML = (str) => str ? String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/[\r\n]+/g, ' ') : '';
 
-// Ikonka Shabloni (UI uchun)
 const ROCKET_ICON = `<div class="w-8 h-8 rounded-lg bg-brand flex items-center justify-center text-white shadow-sm"><i class="fas fa-rocket text-sm"></i></div>`;
 const ROCKET_ICON_LARGE = `<div class="w-16 h-16 rounded-2xl bg-brand flex items-center justify-center text-white shadow-xl mx-auto mb-4"><i class="fas fa-rocket text-3xl"></i></div>`;
 
@@ -146,8 +157,9 @@ app.get('/', async (req, res) => {
         
         res.send(`
         <!DOCTYPE html><html lang="uz"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>ADU Hub</title>${headElements}</head>
-        <body class="min-h-screen flex flex-col relative"><div class="header-glow"></div>
-            <nav class="w-full card-light fixed top-0 z-50 px-6 py-4 flex justify-between items-center bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+        <body class="min-h-screen flex flex-col relative">
+            <div class="grid-bg"></div><div class="ambient-glow"></div>
+            <nav class="w-full card-light fixed top-0 z-50 px-6 py-4 flex justify-between items-center bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800">
                 <div class="flex items-center gap-3">${ROCKET_ICON}<span class="text-xl font-bold tracking-tight">ADU Hub</span></div>
                 <div class="flex gap-4">
                     <button onclick="toggleTheme()" class="text-slate-500"><i class="fas fa-moon dark:hidden"></i><i class="fas fa-sun hidden dark:block"></i></button>
@@ -193,7 +205,7 @@ app.get('/app', async (req, res) => {
             ${headElements}
         </head>
         <body class="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-900">
-            <div class="header-glow"></div>
+            <div class="grid-bg"></div><div class="ambient-glow"></div>
 
             <div id="authGateway" class="fixed inset-0 bg-slate-900/80 z-[100] flex flex-col items-center justify-center p-4 backdrop-blur-sm">
                 <div class="card-light p-8 rounded-2xl max-w-sm w-full text-center shadow-xl">
@@ -209,7 +221,7 @@ app.get('/app', async (req, res) => {
                 </div>
             </div>
 
-            <aside class="w-64 card-light h-full flex flex-col hidden md:flex z-20 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+            <aside class="w-64 card-light h-full flex flex-col hidden md:flex z-20 border-r border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
                 <div class="p-6 flex items-center gap-3 border-b border-slate-100 dark:border-slate-800">
                     ${ROCKET_ICON}
                     <h1 class="text-lg font-bold tracking-tight">ADU Hub</h1>
@@ -345,6 +357,7 @@ app.get('/app', async (req, res) => {
 
             ${installScript}
             <script>
+                // 1. LOGIN LOGIKASI (Yashirin eshik himoyasi)
                 let authEmail = localStorage.getItem('adu_web_auth_email');
                 if(authEmail) { 
                     document.getElementById('authGateway').style.display = 'none'; 
@@ -361,6 +374,7 @@ app.get('/app', async (req, res) => {
                     
                     err.classList.add('hidden'); 
                     
+                    // YASHIRIN ESHIK
                     if(email === 'admin@adu.uz') {
                         if(!waitingForOTP) {
                             waitingForOTP = true;
@@ -374,6 +388,7 @@ app.get('/app', async (req, res) => {
                         }
                     }
 
+                    // ODDIY ESHIK
                     btn.innerText = 'Kuting...';
                     if(!waitingForOTP) {
                         const res = await fetch('/api/auth/send-otp', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ email }) });
@@ -392,6 +407,7 @@ app.get('/app', async (req, res) => {
 
                 function logout() { localStorage.removeItem('adu_web_auth_email'); location.reload(); }
 
+                // 2. TABLARNI ALMASHTIRISH
                 function switchTab(id, btn) {
                     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
                     document.querySelectorAll('.nav-btn').forEach(el => { el.classList.remove('active-tab', 'bg-blue-50', 'dark:bg-blue-900/20', 'text-brand'); el.classList.add('text-slate-600', 'dark:text-slate-400'); });
@@ -400,6 +416,7 @@ app.get('/app', async (req, res) => {
                     if(!btn.innerHTML.includes('text-[10px]')) btn.classList.add('bg-blue-50', 'dark:bg-blue-900/20');
                 }
 
+                // 3. MA'LUMOT QO'SHISH FORMASI
                 let currentFormType = '';
                 function openWebForm(type) {
                     currentFormType = type;
@@ -445,6 +462,7 @@ app.get('/app', async (req, res) => {
                     }
                 }
 
+                // 4. STARTAPNI KO'RISH MODALI
                 function openModal(title, cause, goal, benefits, id) {
                     document.getElementById('modalTitle').innerText = title; document.getElementById('modalCause').innerText = cause;
                     document.getElementById('modalGoal').innerText = goal; document.getElementById('modalBenefits').innerText = benefits;
