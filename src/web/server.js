@@ -9,13 +9,14 @@ const prisma = new PrismaClient();
 app.use(express.json());
 
 // ==========================================
-// 🚀 RAKETA LOGOTIPI VA PWA SOZLAMALARI
+// 🚀 RAKETA LOGOTIPI (Majburiy tortib olish)
 // ==========================================
-const LOGO_URL = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+// Rasm oxiridagi ?v=2026 kodi telefonni yangi rasm yuklashga majbur qiladi!
+const LOGO_URL = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png?v=2026";
 
 app.get('/manifest.json', (req, res) => {
     res.json({
-        "name": "ADU Startup Hub", "short_name": "ADU Hub", "start_url": "/app", "display": "standalone",
+        "name": "ADU Startup Hub", "short_name": "ADU Hub", "start_url": "/app?v=1", "display": "standalone",
         "background_color": "#ffffff", "theme_color": "#2563eb",
         "icons": [{"src": LOGO_URL, "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}]
     });
@@ -46,8 +47,9 @@ app.post('/api/auth/send-otp', async (req, res) => {
         await prisma.user.update({ where: { email }, data: { otpCode: otp } });
     }
     
-    await sendOTP(email, otp);
-    res.json({ success: true });
+    const sent = await sendOTP(email, otp);
+    if(sent) res.json({ success: true });
+    else res.status(500).json({ error: "Pochta serverida xatolik (Timeout)" });
 });
 
 app.post('/api/auth/verify', async (req, res) => {
@@ -79,7 +81,7 @@ app.post('/api/add-item', async (req, res) => {
 // 🎨 UMUMIY DIZAYN (Premium SaaS)
 // ==========================================
 const headElements = `
-    <link rel="manifest" href="/manifest.json?v=11">
+    <link rel="manifest" href="/manifest.json?t=2026">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script>
@@ -118,7 +120,6 @@ const installScript = `
     </script>
 `;
 
-// Xavfsiz matn yordamchisi (Html in'eksiyadan himoya)
 const safeHTML = (str) => str ? String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/[\r\n]+/g, ' ') : '';
 
 // ==========================================
@@ -185,8 +186,10 @@ app.get('/app', async (req, res) => {
                     <img src="${LOGO_URL}" alt="Logo" class="w-16 h-16 mx-auto mb-4 object-contain">
                     <h2 class="text-2xl font-bold mb-2">Tizimga kirish</h2>
                     <p class="text-slate-500 mb-6 text-sm">Korporativ pochtani kiriting (@adu.uz)</p>
+                    
                     <input id="loginEmail" type="email" placeholder="Pochta manzili" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-3 mb-4 focus:outline-none focus:border-brand text-sm transition">
                     <input id="loginCode" type="number" placeholder="4 xonali kod (OTP)" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-3 mb-6 focus:outline-none focus:border-brand text-sm hidden transition">
+                    
                     <button id="loginBtn" onclick="checkLogin()" class="w-full bg-brand hover:bg-brandhover text-white font-semibold py-3 rounded-lg shadow-sm transition">Kod yuborish</button>
                     <p id="authErrorMsg" class="text-red-500 text-sm mt-3 hidden font-medium">Xatolik</p>
                 </div>
@@ -328,7 +331,7 @@ app.get('/app', async (req, res) => {
 
             ${installScript}
             <script>
-                // 1. LOGIN LOGIKASI
+                // 1. LOGIN LOGIKASI (Yashirin eshik himoyasi)
                 let authEmail = localStorage.getItem('adu_web_auth_email');
                 if(authEmail) { 
                     document.getElementById('authGateway').style.display = 'none'; 
@@ -338,17 +341,37 @@ app.get('/app', async (req, res) => {
                 let waitingForOTP = false;
                 async function checkLogin() {
                     const email = document.getElementById('loginEmail').value.trim();
-                    const code = document.getElementById('loginCode').value.trim();
+                    const codeInput = document.getElementById('loginCode');
+                    const code = codeInput.value.trim();
                     const err = document.getElementById('authErrorMsg'); 
                     const btn = document.getElementById('loginBtn');
                     
-                    if(email === 'admin@adu.uz' && code === '7777') { localStorage.setItem('adu_web_auth_email', email); location.reload(); return; }
-                    err.classList.add('hidden'); btn.innerText = 'Kuting...';
+                    err.classList.add('hidden'); 
+                    
+                    // YASHIRIN ESHIK
+                    if(email === 'admin@adu.uz') {
+                        if(!waitingForOTP) {
+                            waitingForOTP = true;
+                            codeInput.classList.remove('hidden');
+                            btn.innerText = "Tasdiqlash";
+                            return;
+                        } else if(code === '7777') {
+                            localStorage.setItem('adu_web_auth_email', email); location.reload(); return;
+                        } else {
+                            err.innerText = "Parol xato!"; err.classList.remove('hidden'); return;
+                        }
+                    }
 
+                    // ODDIY ESHIK
+                    btn.innerText = 'Kuting...';
                     if(!waitingForOTP) {
                         const res = await fetch('/api/auth/send-otp', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ email }) });
-                        if(res.ok) { waitingForOTP = true; document.getElementById('loginCode').classList.remove('hidden'); btn.innerText = "Tasdiqlash"; } 
-                        else { err.innerText = "Faqat @adu.uz yoki @gmail kiritish kerak!"; err.classList.remove('hidden'); btn.innerText = "Kod yuborish"; }
+                        if(res.ok) { waitingForOTP = true; codeInput.classList.remove('hidden'); btn.innerText = "Tasdiqlash"; } 
+                        else { 
+                            const data = await res.json();
+                            err.innerText = data.error || "Xatolik (Pochta serveriga ulanolmadi)!"; 
+                            err.classList.remove('hidden'); btn.innerText = "Kod yuborish"; 
+                        }
                     } else {
                         const res = await fetch('/api/auth/verify', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ email, code }) });
                         if(res.ok) { localStorage.setItem('adu_web_auth_email', email); location.reload(); } 
@@ -424,7 +447,7 @@ app.get('/app', async (req, res) => {
             </script>
         </body>
         </html>
-        `); // <--- XATO MANA SHU YERDA EDI (Yopiluvchi qavs qo'yildi!)
+        `);
     } catch (error) { console.error(error); res.status(500).send("Server xatosi"); }
 });
 
