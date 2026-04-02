@@ -9,19 +9,21 @@ const prisma = new PrismaClient();
 app.use(express.json());
 
 // ==========================================
-// 🚀 RAKETA LOGOTIPI (Majburiy tortib olish)
+// 🚀 RAKETA LOGOTIPI VA ANTI-KESH PWA
 // ==========================================
-// Rasm oxiridagi ?v=2026 kodi telefonni yangi rasm yuklashga majbur qiladi!
-const LOGO_URL = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png?v=2026";
+const LOGO_URL = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
 
-app.get('/manifest.json', (req, res) => {
+// Eski manifest.json ni unutishi uchun mutlaqo yangi nom berdik:
+app.get('/app.webmanifest', (req, res) => {
     res.json({
-        "name": "ADU Startup Hub", "short_name": "ADU Hub", "start_url": "/app?v=1", "display": "standalone",
+        "name": "ADU Startup Hub", "short_name": "ADU Hub", "start_url": "/app", "display": "standalone",
         "background_color": "#ffffff", "theme_color": "#2563eb",
         "icons": [{"src": LOGO_URL, "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}]
     });
 });
-app.get('/sw.js', (req, res) => {
+
+// Eski sw.js ni unutishi uchun yangi worker.js
+app.get('/worker.js', (req, res) => {
     res.setHeader('Content-Type', 'application/javascript');
     res.send(`
         self.addEventListener('install', (e) => { self.skipWaiting(); }); 
@@ -47,9 +49,8 @@ app.post('/api/auth/send-otp', async (req, res) => {
         await prisma.user.update({ where: { email }, data: { otpCode: otp } });
     }
     
-    const sent = await sendOTP(email, otp);
-    if(sent) res.json({ success: true });
-    else res.status(500).json({ error: "Pochta serverida xatolik (Timeout)" });
+    await sendOTP(email, otp);
+    res.json({ success: true });
 });
 
 app.post('/api/auth/verify', async (req, res) => {
@@ -81,7 +82,7 @@ app.post('/api/add-item', async (req, res) => {
 // 🎨 UMUMIY DIZAYN (Premium SaaS)
 // ==========================================
 const headElements = `
-    <link rel="manifest" href="/manifest.json?t=2026">
+    <link rel="manifest" href="/app.webmanifest">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script>
@@ -107,6 +108,19 @@ const headElements = `
 
 const installScript = `
     <script>
+        // ⚔️ QOTIL SKRIPT: BARCHA ESKI KESHLARNI TOZALASH
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister(); // Eski Kostyumli odamni xotiradan o'ldiradi
+                }
+            }).then(() => {
+                // Yangi, toza Service Worker o'rnatiladi
+                navigator.serviceWorker.register('/worker.js');
+            });
+        }
+
+        // O'rnatish logikasi
         let dp; window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); dp = e; }); 
         function handleInstall() { 
             if(dp) { dp.prompt(); dp.userChoice.then(r => { if(r.outcome === 'accepted') dp = null; }); } 
